@@ -1,0 +1,33 @@
+body {
+  font-family: arial, helvetica, sans-serif;
+  font-size: 0.8125em;
+  line-height: 1.3em;
+  margin: 0;
+}
+
+ul#recipeList {
+  cursor: default;
+  width: 250px;
+  background-color: #0d0d0d;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul#recipeList li {
+  padding: 4px 0 4px 0;
+}
+
+ul#recipeList li span {
+  margin-left: 4px;
+}
+
+ul#recipeList li.selectedRecipe {
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px #000;
+}
+
+input#craftAmount {
+  width: 40px;
+}

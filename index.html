@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <title>CraftClicker</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/inventory.js"></script>
+    <script type="text/javascript" src="js/player.js"></script>
+    <script type="text/javascript" src="js/resources.js"></script>
+    <script type="text/javascript" src="js/equipment.js"></script>
+    <script type="text/javascript" src="js/recipes.js"></script>
+    <script type="text/javascript" src="js/game.js"></script>
+
+    <link type="text/css" href="css/styles.css" rel="stylesheet"  />
+  </head>
+  <body>
+    <div id="actions">
+      <input id="gather" type="button" value="Gather" onclick="game.step();" />
+      <div id="inventory">
+        <table id="inventoryTable">
+          <thead>
+            <th>Item</th>
+            <th>Amount</th>
+          </thead>
+        </table>
+      </div>
+      <div id="recipes">
+        <ul id="recipeList">
+        </ul>
+        <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()"></input>
+        <input id="craftAmount" type="number" min="1" value="1"></input>
+        <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())"></input>
+      </div>
+    </div>
+  </body>
+</html>
