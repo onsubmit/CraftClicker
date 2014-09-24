@@ -1,33 +1,126 @@
 body {
-  font-family: arial, helvetica, sans-serif;
+  font-family: georgia, arial, helvetica, sans-serif;
   font-size: 0.8125em;
   line-height: 1.3em;
+  margin: 10px;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  padding: 0;
+  margin: 0 0 6px 0;
+}
+
+div#container {
+  width: 600px;
+}
+
+div#inventory {
+  
+}
+
+table#inventoryTable {
+  border: 1px solid black;
+  border-bottom: 0;
+  border-right: 0;
+
+  width: 200px;
+  border-spacing: 0;
+  border-collapse: separate;
+  font-size: 1em;
+}
+
+table#inventoryTable td, table#inventoryTable th {
   margin: 0;
+  border-bottom: 1px solid #000;
+  border-right: 1px solid #000;
+  padding: 4px;
+}
+
+div#recipes {
+  float: left;
+  margin-right: 10px;
+}
+
+div#recipeScroll {
+  height: 150px;
+  overflow-y: scroll;
+  background-color: #0d0d0d;
 }
 
 ul#recipeList {
   cursor: default;
   width: 250px;
-  background-color: #0d0d0d;
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
 ul#recipeList li {
-  padding: 4px 0 4px 0;
+  padding: 4px;
+  border-bottom: 1px solid #0d0d0d;
+  white-space: nowrap;
+  overflow: visible !important; // jQuery's animate forces overflow: hidden;
 }
 
 ul#recipeList li span {
   margin-left: 4px;
 }
 
+ul#recipeList li div.recipeName {
+  overflow: visible !important;
+}
+
+a:link.cancel, a:visited.cancel, a:active.cancel {
+  color: #fff;
+}
+
+a:hover.cancel {
+  color: #ddd;
+}
+
+
 ul#recipeList li.selectedRecipe {
-  color: white;
   font-weight: bold;
+}
+
+ul#recipeList li.background {
+  color: white;
   text-shadow: 1px 1px #000;
 }
 
+div#recipeRequirements {
+  color: white;
+  height: 200px;
+  background-color: #0d0d0d;
+  overflow-y: scroll;
+  padding: 4px;
+}
+
+table#recipeRequirementList {
+  color: white;
+  border-spacing: 0;
+  border-collapse: separate;
+  margin-top: 10px;
+}
+
+table#recipeRequirementList td {
+  margin: 0;
+  padding: 2px;
+}
+
+table#recipeRequirementList tr.missing {
+  color: red;
+}
+
+
 input#craftAmount {
   width: 40px;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.floatRight {
+  float: right;
 }

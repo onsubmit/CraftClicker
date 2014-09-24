@@ -1,5 +1,6 @@
 function Inventory() {
   this.items = {};
+  this.sorted = [];
 }
 
 Inventory.prototype.craft = function(recipe, amount) {
@@ -14,6 +15,7 @@ Inventory.prototype.craft = function(recipe, amount) {
   }
   else {
     this.items[recipe.name] = amount;
+    this.insertSorted(recipe.name);
   }
 }
 
@@ -26,6 +28,7 @@ Inventory.prototype.merge = function(drops) {
       }
       else {
         this.items[drop.item.name] = drop.amount;
+        this.insertSorted(drop.item.name);
       }
     }
   }
@@ -48,4 +51,9 @@ Inventory.prototype.getCraftableAmount = function(recipe) {
   }
 
   return minAmount < 0 ? 0 : minAmount;
+}
+
+Inventory.prototype.insertSorted = function(element) {
+  this.sorted.push(element);
+  this.sorted.sort();
 }

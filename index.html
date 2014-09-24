@@ -12,22 +12,28 @@
     <link type="text/css" href="css/styles.css" rel="stylesheet"  />
   </head>
   <body>
-    <div id="actions">
-      <input id="gather" type="button" value="Gather" onclick="game.step();" />
+    <div id="container">
+      <div id="recipes">
+        <div id="recipeScroll">
+          <ul id="recipeList">
+          </ul>
+        </div>
+        <div id="recipeRequirements">
+        </div>
+        <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
+        <input id="craftAmount" type="number" min="1" value="1"></input>
+        <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
+        <input id="gather" type="button" value="Gather" onclick="game.step();" />
+      </div>
       <div id="inventory">
         <table id="inventoryTable">
           <thead>
             <th>Item</th>
             <th>Amount</th>
           </thead>
+          <tbody>
+          </tbody>
         </table>
-      </div>
-      <div id="recipes">
-        <ul id="recipeList">
-        </ul>
-        <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()"></input>
-        <input id="craftAmount" type="number" min="1" value="1"></input>
-        <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())"></input>
       </div>
     </div>
   </body>

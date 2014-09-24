@@ -3,6 +3,7 @@ Recipes.WoodenPick =
 {
   name: "Wooden Pick",
   minLevel: 1,
+  craftTime: 2,
   Requirements :
   [
     { resource: Resources.Wood, amount: 5 }
@@ -23,6 +24,7 @@ Recipes.StonePick =
 {
   name: "Stone Pick",
   minLevel: 1,
+  craftTime: 3,
   Requirements :
   [
       { resource : Resources.Wood, amount: 2 },
@@ -44,6 +46,7 @@ Recipes.Forge =
 {
   name: "Forge",
   minLevel: 1,
+  craftTime: 8,
   Requirements :
   [
     { resource : Resources.Stone, amount : 24 }
@@ -58,11 +61,11 @@ Recipes.IronBar =
 {
   name: "Iron Bar",
   minLevel: 1,
+  craftTime: 3,
+  requiresForge: true,
   Requirements :
   [
     { resource: Resources.Iron, amount: 1 },
     { resource: Resources.Coal, amount: 1 },
-    { resource: Resources.Coal, amount: 1 },
-    { resource: Recipes.Forge.Item, amount: 1 },
   ]
 };

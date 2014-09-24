@@ -2,9 +2,10 @@ function Player() {
   this.level = 1;
   this.inventory = new Inventory();
   this.equipment = new Equipment();
+  this.crafting = {};
 }
 
-Player.prototype.craft = function(recipe, amount) {
+Player.prototype.craft = function(recipe, amount) {  
   this.inventory.craft(recipe, amount);
 
   if (recipe.Item && recipe.Item.slot == Slot.Pick) {
