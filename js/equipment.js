@@ -14,8 +14,8 @@ function Equipment() {
 
   fists.LootModifiers[Resources.Coal.name] = 0;
   fists.LootModifiers[Resources.Stone.name] = 0;
-  fists.LootModifiers[Resources.Copper.name] = 0;
-  fists.LootModifiers[Resources.Iron.name] = 0;
+  fists.LootModifiers[Resources.CopperOre.name] = 0;
+  fists.LootModifiers[Resources.IronOre.name] = 0;
 
   this.equip(fists);
 }

@@ -1,15 +1,16 @@
 function Game()
 {
   this.player = new Player();
+  this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
   setInterval(this.updateUI, 2000);
 }
 
 Game.prototype.updateUI = function() {
   var g = window.game;
-  var p = g.player;
 
-  game.drawInventory();
-  game.drawRecipes();
+  g.drawLevel();
+  g.drawInventory();
+  g.drawRecipes();
 }
 
 Game.prototype.step = function() {
@@ -47,7 +48,7 @@ Game.prototype.gather = function() {
   return drops;
 }
 
-Game.prototype.craft = function(amount) {
+Game.prototype.craft = function(amount, itemLevel) {
   amount = parseInt(amount);
   var $current = $('#recipeList li.selectedRecipe');
   if ($current.length > 0) {
@@ -73,31 +74,43 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
   var g = window.game;
   var p = g.player;
 
-  // Note that crafting of the given recipe has been requested.
-  p.crafting[recipe.name] = el;
-
-  var fullWidth = el.width();
-
   // Confirm the necessary requirements are still met for this recipe
   if (p.getCraftableAmount(recipe) == 0) {
     // Stop the animation
     el.stop();
     
     // Return the width of the recipe to full-width
-    el.width(fullWidth);
+    el.width(g.recipeWidth);
     return;
   }
+
+  // Note that crafting of the given recipe has been requested.
+  p.crafting[recipe.name] = el;
 
   // Show the cancel icon
   var id = recipe.name.replace(/ /g, '');
   var $cancelLink = $('#rc_' + id)
   $cancelLink.show();
 
+  var multiplier = 0;
+  if (recipe.requiresForge) {
+    for (var prop in p.inventory.forges) {
+      if(p.inventory.forges.hasOwnProperty(prop)) {
+        var forgeLevel = parseInt(prop);
+        var numForges = p.inventory.forges[prop];
+        multiplier += forgeLevel * numForges;
+      }
+    }
+  }
+
+  multiplier = multiplier || 1;
+  var craftTime = Math.round(recipe.craftTime * 1000 / multiplier);
+
   // Begin the crafting animation.
   var count = amount;
-  el.width(0).animate(
-    { width: fullWidth },
-    recipe.craftTime * 1000,
+  el.addClass('animating').width(0).animate(
+    { width: g.recipeWidth },
+    craftTime,
     "linear",
     function() {
       // Clicking the cancel icon removes the queued up crafting request
@@ -116,7 +129,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
         el.stop();
 
         // Return the width of the recipe to full-width
-        el.width(fullWidth);
+        el.width(g.recipeWidth);
 
         // Hide the cancel icon
         $cancelLink.hide();
@@ -128,6 +141,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
       }
 
       if (count == 0) {
+        $(this).removeClass('animating');
         delete p.crafting[recipe.name];
 
         // Hide the cancel icon
@@ -152,7 +166,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
             $queuedRecipe.stop();
 
             // Return the width of the recipe to full-width
-            $queuedRecipe.width(fullWidth);
+            $queuedRecipe.width(g.recipeWidth);
 
             // Hide the cancel icon
             $queuedCancelLink.hide();
@@ -163,10 +177,20 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
             }
 
             delete p.crafting[prop];
+            $queuedRecipe.removeClass('animating');
           }
         }
       }
     });
+}
+
+Game.prototype.drawLevel = function() {
+  var g = window.game;
+  var p = g.player;
+
+  var maxWidth = $('#recipeLevelBarText').width();
+  $('#recipeLevelBar').width(Math.round(maxWidth * p.level / p.maxLevel));
+  $('#recipeLevelBarText').text(p.level + '/' + p.maxLevel);
 }
 
 Game.prototype.drawRecipes = function() {
@@ -182,74 +206,83 @@ Game.prototype.drawRecipes = function() {
         var id = prop.replace(/ /g, '');
         var $row = $('#r_' + id);
         if ($row.length) {
+          var color = g.determineRecipeColor(recipe);
           $('#ra_' + id).text(amount > 0 ? '[' + amount + ']' : '')
-          if ($row.hasClass('selectedRecipe')) {
+          if ($row.hasClass('selectedRecipe') || $row.hasClass('animating')) {
+            $row.css('background-color', color);
+            $row.css('color', 'white');
+
             var disabled = (amount == 0);
             $('#craft').prop('disabled', disabled);
             $('#craftAll').prop('disabled', disabled);
           }
+          else
+          {
+            $row.css('color', color);
+          }
         }
         else {
-          $('<li/>',
-          {
-            id: 'r_' + id,
-            data: recipe,
-          })
-          .append(
-            $('<div/>',
+          $('#recipeList').prepend(
+            $('<li/>',
             {
-              id: 'rn_' + id,
-              text: recipe.name,
-              class: 'recipeName',
+              id: 'r_' + id,
+              data: recipe,
             })
             .append(
-              $('<span/>',
+              $('<div/>',
               {
-                id: 'ra_' + id,
-                text: amount > 0 ? '[' + amount + ']' : ''
+                id: 'rn_' + id,
+                text: recipe.name,
+                class: 'recipeName',
               })
-            )
-            .append(
-              $('<a/>',
-              {
-                id: 'rc_' + id,
-                class: 'floatRight cancel',
-                text: 'x',
-                title: 'Cancel',
-                href: '#',
-                click: function(event) {
-                  var $el = $(this).parents('li');
-                  var elRecipe = $el.data();
+              .append(
+                $('<span/>',
+                {
+                  id: 'ra_' + id,
+                  text: amount > 0 ? '[' + amount + ']' : ''
+                })
+              )
+              .append(
+                $('<a/>',
+                {
+                  id: 'rc_' + id,
+                  class: 'floatRight cancel',
+                  text: 'x',
+                  title: 'Cancel',
+                  href: '#',
+                  click: function(event) {
+                    var $el = $(this).parents('li');
+                    var elRecipe = $el.data();
 
-                  // Dequeue the crafting request
-                  delete p.crafting[elRecipe.name];
+                    // Dequeue the crafting request
+                    delete p.crafting[elRecipe.name];
 
-                  // Stop the animation
-                  $el.stop();
+                    // Stop the animation
+                    $el.stop();
 
-                  // Return the width of the recipe to full-width
-                  $el.width($(this).parent().width())
+                    // Return the width of the recipe to full-width
+                    $el.width(g.recipeWidth)
 
-                  // Hide the cancel icon
-                  $(this).hide();
+                    // Hide the cancel icon
+                    $(this).hide();
 
-                  // Remove the background animation bar (unless recipe is selected)
-                  if (!$el.hasClass('selectedRecipe')) {
-                    unselectRecipe($el);
+                    // Remove the background animation bar (unless recipe is selected)
+                    if (!$el.hasClass('selectedRecipe')) {
+                      unselectRecipe($el);
+                    }
+
+                    // Prevent the click event from bubbling up to the parent.
+                    // This was causing the parent <li> onclick event to fire, selecting the cancelled recipe.
+                    event.stopPropagation();
                   }
-
-                  // Prevent the click event from bubbling up to the parent.
-                  // This was causing the parent <li> onclick event to fire, selecting the cancelled recipe.
-                  event.stopPropagation();
-                }
-              }).hide()
+                }).hide()
+              )
             )
-          )
-          .css('color', g.determineRecipeColor(recipe))
-          .click(function() { selectRecipe($(this)) })
-          .dblclick(function() { g.craft($('#craftAmount').val()) })
-          .appendTo('#recipeList');
-          $('#rn_' + id).width($('#r_' + id).width());
+            .css('color', g.determineRecipeColor(recipe))
+            .click(function() { selectRecipe($(this)) })
+            .dblclick(function() { g.craft($('#craftAmount').val()) })
+          );
+          $('#rn_' + id).width(g.recipeWidth);
         }
       }
     }
@@ -257,7 +290,7 @@ Game.prototype.drawRecipes = function() {
 
   var $current = $('#recipeList li.selectedRecipe');
   if ($current.length) {
-    if (!$($current).is(':animated') ) {
+    if (!$current.hasClass('animating')) {
       drawRecipeRequirements($current);
     }
   }
@@ -273,17 +306,28 @@ Game.prototype.drawInventory = function() {
       value.text(amount);
     }
     else {
-      var newRow = '\
-        <tr>\
-          <td id="in_' + id + '">' + prop + '</td>\
-          <td id="iv_' + id + '">' + amount + '</td>\
-        </tr>';
+      var $newRow = $('<tr/>')
+        .append(
+          $('<td/>',
+          {
+            id: 'in_' + id,
+            text: prop,
+            class: 'alignRight'
+          })
+        )
+        .append(
+          $('<td/>',
+          {
+            id: 'iv_' + id,
+            text: amount
+          })
+        );
 
       // If no invetory rows exist, add it to the <tbody>
       var $tbody = $('#inventoryTable tbody');
       var $rows = $('#inventoryTable td[id*=in]');
       if (!$rows.length) {
-        $tbody.append(newRow);
+        $tbody.append($newRow);
         return;
       }
 
@@ -294,35 +338,26 @@ Game.prototype.drawInventory = function() {
         if ($(this).text().localeCompare(prop) == 1) {
           $row = $(this).parent();
           return false;
-;        }
+        }
       });
 
       if ($row) {
-        $row.before(newRow);
+        $row.before($newRow);
       }
       else {
         // No row found, put it at the end
-        $('#inventoryTable tbody tr:last').after(newRow);
+        $('#inventoryTable tbody tr:last').after($newRow);
       }
     }
   }
 }
 
 Game.prototype.determineRecipeColor = function(recipe) {
-  var diff = recipe.minLevel - this.player.level;
-  if (diff == 0) {
-    return '#FF8E46';
-  }
+  var g = window.game;
+  var p  = g.player;
 
-  if (diff < 3) {
-    return '#838300';
-  }
-
-  if (diff < 6) {
-    return '#297022';
-  }
-
-  return '#555';
+  var diff = p.determineRecipeDifficulty(recipe);
+  return g.difficultyColors[diff];
 }
 
 Game.prototype.r = function() {
@@ -334,14 +369,14 @@ var game = new Game();
 selectRecipe = function(el) {
   var $current = $('#recipeList li.selectedRecipe');
   if ($current.length) {
-    if (!$($current).is(':animated') ) {
+    if (!$current.hasClass('animating')) {
       unselectRecipe($current);
     }
 
     $current.removeClass('selectedRecipe');
   }
 
-  if (!$(el).is(':animated') ) {
+  if (!el.hasClass('animating') ) {
     el.css('background-color', el.css('color'))
     el.css('color', '')
     el.addClass('background');
@@ -382,11 +417,22 @@ drawRecipeRequirements = function(el) {
     text: 'Craft time: ' + createTimeString(recipe.craftTime),
   }).appendTo($div);
 
-  if (recipe.requiresForge) {
+  if (recipe.text) {
     $('<p/>', {
+      text: recipe.text,
+      class: 'recipeDesc'
+    }).appendTo($div);
+  }
+
+  if (recipe.requiresForge) {
+    var $reqForge = $('<p/>', {
       id: 'requiresForge',
       text: "Requires Forge",
     }).appendTo($div);
+
+    if (!p.equipment.items[Slot.Forge]) {
+      $reqForge.addClass('missing');
+    }
   }
 
   var $table = $('<table/>', {
@@ -465,5 +511,7 @@ $(document).ready(function() {
         this.onselectstart = function() { return false; };
     });
 
+    game.drawLevel();
     game.drawRecipes();
+    game.recipeWidth = $('#recipeList li:first').width();
 });

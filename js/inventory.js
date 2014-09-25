@@ -1,20 +1,28 @@
 function Inventory() {
   this.items = {};
   this.sorted = [];
+  this.forges = {};
 }
 
-Inventory.prototype.craft = function(recipe, amount) {
-  amount = amount || 1;
+Inventory.prototype.craft = function(recipe) {
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
-    this.items[req.resource.name] -= req.amount * amount;
+    this.items[req.resource.name] -= req.amount;
   }
 
-  if (this.items[recipe.name]) {
-    this.items[recipe.name] += amount;
+  if (recipe.Item && recipe.Item.slot && recipe.Item.slot == Slot.Forge) {
+    if (this.forges[recipe.itemLevel]) {
+      this.forges[recipe.itemLevel] += 1;
+    }
+    else {
+      this.forges[recipe.itemLevel] = 1;
+    }
+  }
+  else if (this.items[recipe.name]) {
+    this.items[recipe.name] += 1;
   }
   else {
-    this.items[recipe.name] = amount;
+    this.items[recipe.name] = 1;
     this.insertSorted(recipe.name);
   }
 }

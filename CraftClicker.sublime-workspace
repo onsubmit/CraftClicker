@@ -75,7 +75,79 @@
 			"file": "index.html",
 			"settings":
 			{
-				"buffer_size": 333,
+				"buffer_size": 1567,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/game.js",
+			"settings":
+			{
+				"buffer_size": 12815,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "css/styles.css",
+			"settings":
+			{
+				"buffer_size": 1892,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/inventory.js",
+			"settings":
+			{
+				"buffer_size": 1705,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/recipes.js",
+			"settings":
+			{
+				"buffer_size": 1331,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/items.js",
+			"settings":
+			{
+				"buffer_size": 318,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/forge.js",
+			"settings":
+			{
+				"buffer_size": 38,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/resources.js",
+			"settings":
+			{
+				"buffer_size": 514,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/player.js",
+			"settings":
+			{
+				"buffer_size": 614,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/equipment.js",
+			"settings":
+			{
+				"buffer_size": 486,
 				"line_ending": "Windows"
 			}
 		}
@@ -104,6 +176,15 @@
 	},
 	"file_history":
 	[
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/recipes.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/player.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/inventory.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/resources.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/equipment.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/CraftClicker.sublime-workspace",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/item.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/items/wood.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/items.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/entity.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/equipment.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/enemy.js",
@@ -135,7 +216,7 @@
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 90.0,
 		"where_history":
 		[
 			"*",
@@ -147,6 +228,38 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"craftall",
+			"width:",
+			"260",
+			"245",
+			"width",
+			"width:",
+			"width :",
+			"width(",
+			".width(",
+			"width(",
+			"fullwidth",
+			".items",
+			"amount",
+			"missing",
+			"slot",
+			"Slot.Forge",
+			"selectRecipe",
+			"var game = new Game();\n",
+			"unhigh",
+			"un",
+			"unhighlightRecipe",
+			"drawRecipeRequirements",
+			"h3",
+			"unhigh",
+			"unselectRecipe",
+			"highlightrecipe",
+			"row",
+			"selectedRecipe",
+			"Equipment",
+			"Items",
+			"id: i++, ",
+			";\n",
 			"maxXP",
 			"maxxp",
 			"1.1 *",
@@ -247,6 +360,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"",
 			"baseHP5Pct",
 			"this.name = \"Brute\"",
 			"Nymph",
@@ -269,7 +383,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -277,20 +391,264 @@
 					"file": "index.html",
 					"settings":
 					{
-						"buffer_size": 333,
+						"buffer_size": 1567,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								808,
+								818
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "js/game.js",
+					"settings":
+					{
+						"buffer_size": 12815,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1621,
+								1621
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 438.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "css/styles.css",
+					"settings":
+					{
+						"buffer_size": 1892,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1125,
+								1125
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 618.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "js/inventory.js",
+					"settings":
+					{
+						"buffer_size": 1705,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								372,
+								372
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "js/recipes.js",
+					"settings":
+					{
+						"buffer_size": 1331,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								604,
+								604
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 405.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "js/items.js",
+					"settings":
+					{
+						"buffer_size": 318,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								307,
+								307
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "js/forge.js",
+					"settings":
+					{
+						"buffer_size": 38,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								38,
+								38
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "js/resources.js",
+					"settings":
+					{
+						"buffer_size": 514,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								344,
+								344
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "js/player.js",
+					"settings":
+					{
+						"buffer_size": 614,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								210,
+								210
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "js/equipment.js",
+					"settings":
+					{
+						"buffer_size": 486,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								278,
+								278
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -307,7 +665,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 31.0
 	},
 	"layout":
 	{

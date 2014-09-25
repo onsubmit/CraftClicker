@@ -39,20 +39,22 @@ table#inventoryTable td, table#inventoryTable th {
 div#recipes {
   float: left;
   margin-right: 10px;
+  width: 270px;
 }
 
 div#recipeScroll {
-  height: 150px;
-  overflow-y: scroll;
+  height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-color: #0d0d0d;
+  border-bottom: 1px solid white;
 }
 
 ul#recipeList {
   cursor: default;
-  width: 250px;
   list-style-type: none;
   margin: 0;
-  padding: 0;
+  padding: 8px 0 8px 0;
 }
 
 ul#recipeList li {
@@ -68,6 +70,7 @@ ul#recipeList li span {
 
 ul#recipeList li div.recipeName {
   overflow: visible !important;
+  width: 260px;
 }
 
 a:link.cancel, a:visited.cancel, a:active.cancel {
@@ -92,8 +95,14 @@ div#recipeRequirements {
   color: white;
   height: 200px;
   background-color: #0d0d0d;
-  overflow-y: scroll;
-  padding: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+div#recipeRequirements .recipeDesc {
+  color: #999;
+  font-size: 0.9em;
 }
 
 table#recipeRequirementList {
@@ -108,11 +117,6 @@ table#recipeRequirementList td {
   padding: 2px;
 }
 
-table#recipeRequirementList tr.missing {
-  color: red;
-}
-
-
 input#craftAmount {
   width: 40px;
 }
@@ -121,6 +125,41 @@ input#craftAmount {
   text-align: right;
 }
 
+.alignCenter {
+  text-align: center;
+}
+
 .floatRight {
   float: right;
+}
+
+.missing {
+  color: red;
+}
+
+div#recipeLevel {
+  background-color: #0d0d0d;
+  border: 1px solid #0d0d0d;
+}
+
+div#recipeLevelBar {
+  background-color: #909;
+}
+
+div#recipeLevelBarText {
+  width: 268px;
+}
+
+.smallBar {
+  height: 20px;
+}
+
+.smallBarText {
+  text-align: center;
+  vertical-align: middle;
+  line-height: 20px;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #000;
+  position: absolute;
 }
