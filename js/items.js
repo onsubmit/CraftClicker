@@ -39,6 +39,7 @@ Items.SturdyForge.SmeltModifiers[Items.IronBar.name] = 2;
 
 Items.WoodenPick = {
   slot: Slot.Pick,
+  level: 1,
   name: "Wooden Pick",
   LootModifiers: {}
 }
@@ -48,6 +49,7 @@ Items.WoodenPick.LootModifiers[Resources.Stone.name] = 1;
 
 Items.StonePick = {
     slot: Slot.Pick,
+    level: 2,
     name: "Stone Pick",
     LootModifiers: {}
 }
@@ -58,6 +60,7 @@ Items.StonePick.LootModifiers[Resources.IronOre.name] = 1;
 
 Items.CastIronPick = {
     slot: Slot.Pick,
+    level: 3,
     name: "Cast Iron Pick",
     LootModifiers: {}
 }

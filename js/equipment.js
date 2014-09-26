@@ -9,5 +9,6 @@ function Equipment() {
 }
 
 Equipment.prototype.equip = function(item) {
+  if ((!item.level || !this.items[item.slot]) || (this.items[item.slot] && item.level > this.items[item.slot].level))
   this.items[item.slot] = item;
 }

@@ -237,12 +237,15 @@ Game.prototype.drawRecipes = function() {
     if(Recipes.hasOwnProperty(prop)) {
       var recipe = Recipes[prop];
       if (this.player.level >= recipe.minLevel) {
+        var hasScrollBar = $('#recipeScroll').hasScrollBar();
         var amount = p.getCraftableAmount(recipe);
         var id = prop.replace(/ /g, '');
         var $row = $('#r_' + id);
         if ($row.length) {
           var color = g.determineRecipeColor(recipe);
+
           $('#ra_' + id).text(amount > 0 ? '[' + amount + ']' : '')
+          $('#rn_' + id).width(hasScrollBar ? 240 : 260) // fucking scrollbar
           if ($row.hasClass('selectedRecipe') || $row.hasClass('animating')) {
             $row.css('background-color', color);
             $row.css('color', 'white');
@@ -269,7 +272,7 @@ Game.prototype.drawRecipes = function() {
                 id: 'rn_' + id,
                 text: recipe.name,
                 class: 'recipeName',
-              })
+              }).width(hasScrollBar ? 240 : 260) // fucking scrollbar
               .append(
                 $('<span/>',
                 {
@@ -551,3 +554,18 @@ $(document).ready(function() {
     game.recipeWidth = $('#recipeList li:first').width();
     $('#forges').hide();
 });
+
+$(document).keypress(function(e) {
+  if (e.which == 32) { // space
+    game.craft($('#craftAmount').val())
+  }
+  else if (e.which == 103) { // 'g'
+    game.step();
+  }
+});
+
+(function($) {
+    $.fn.hasScrollBar = function() {
+        return this.get(0).scrollHeight > this.height();
+    }
+})(jQuery);
