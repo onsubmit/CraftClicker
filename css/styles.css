@@ -2,7 +2,8 @@ body {
   font-family: georgia, arial, helvetica, sans-serif;
   font-size: 0.8125em;
   line-height: 1.3em;
-  margin: 10px;
+  margin: 0;
+  padding: 0;
 }
 
 h1, h2, h3, h4, h5, h6, p {
@@ -11,11 +12,12 @@ h1, h2, h3, h4, h5, h6, p {
 }
 
 div#container {
-  width: 600px;
+  min-width: 480px;
+  margin: 10px;
 }
 
 div#inventory {
-  
+  float: right;
 }
 
 table#inventoryTable {
@@ -38,7 +40,7 @@ table#inventoryTable td, table#inventoryTable th {
 
 div#recipes {
   float: left;
-  margin-right: 10px;
+  margin: 0 10px 10px 0;
   width: 270px;
 }
 
@@ -148,6 +150,32 @@ div#recipeLevelBar {
 
 div#recipeLevelBarText {
   width: 268px;
+}
+
+div#forges {
+  width: 100%;
+  text-align: center;
+  clear: both;
+}
+
+div#forges table {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  font-size: 1em;
+}
+
+div#forges table th {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+div#forges table td {
+  height: 40px;
+  width: 40px;
+  margin: 0;
+  padding: 8px;
 }
 
 .smallBar {

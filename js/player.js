@@ -1,6 +1,6 @@
 function Player() {
   this.level = 0;
-  this.maxLevel = 10;
+  this.maxLevel = 2;
   this.inventory = new Inventory();
   this.equipment = new Equipment();
   this.crafting = {};
@@ -23,7 +23,19 @@ Player.prototype.increaseLevel = function(recipe) {
   this.level += (Math.random() < this.skillIncreaseChanges[diff] ? 1 : 0);
 
   if (this.level == this.maxLevel) {
-    this.maxLevel += 10 + Math.floor(this.maxLevel) / 10
+    var nextMaxLevel = this.maxLevel + 10;
+    for (var prop in Recipes) {
+      if(Recipes.hasOwnProperty(prop)) {
+        var recipe = Recipes[prop];
+        if (recipe.minLevel > this.maxLevel) {
+          if (recipe.minLevel < nextMaxLevel) {
+            nextMaxLevel = recipe.minLevel;
+          }
+        }
+      }
+    }
+
+    this.maxLevel = nextMaxLevel;
   }
 }
 
@@ -49,7 +61,7 @@ Player.prototype.collect = function(drops) {
 }
 
 Player.prototype.getCraftableAmount = function(recipe) {
-  if (recipe.requiresForge && !this.equipment.items[Slot.Forge]) {
+  if (recipe.forge && !this.inventory.forges.some(function(f) { return f.level >= recipe.forge.level })) {
     return 0;
   }
 

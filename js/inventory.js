@@ -1,24 +1,30 @@
 function Inventory() {
   this.items = {};
   this.sorted = [];
-  this.forges = {};
+  this.forges = [];
+  this.maxNumForges = 4;
 }
 
 Inventory.prototype.craft = function(recipe) {
+  var isForge = recipe.Item && recipe.Item.slot && recipe.Item.slot == Slot.Forge;
+
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
     this.items[req.resource.name] -= req.amount;
   }
 
-  if (recipe.Item && recipe.Item.slot && recipe.Item.slot == Slot.Forge) {
-    if (this.forges[recipe.itemLevel]) {
-      this.forges[recipe.itemLevel] += 1;
-    }
-    else {
-      this.forges[recipe.itemLevel] = 1;
-    }
+  /* TODO:  Inventory and usable forges are separate item collections.
+            Limit number of usuable forges to 4.
+            Crafting a new forge can only use forges in the inventory, not usable forges.
+            This is because a usable forge could be crafting and that would complicate things.
+            Allow the player to move a forge back into their inventory.
+  */ 
+
+  if (isForge) {
+    this.forges.push(recipe.Item);
   }
-  else if (this.items[recipe.name]) {
+  
+  if (this.items[recipe.name]) {
     this.items[recipe.name] += 1;
   }
   else {

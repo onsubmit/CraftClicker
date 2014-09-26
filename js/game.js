@@ -26,12 +26,13 @@ Game.prototype.gather = function() {
     if(Resources.hasOwnProperty(prop)) {
       var item = Resources[prop];
       var pick = this.player.equipment.items[Slot.Pick];
-      var lootModifier = 1;
+      var lootModifier = (item == Resources.Wood ? 1 : 0);
       if (pick) {
         lootModifier = (typeof pick.LootModifiers[item.name] == "undefined" ? lootModifier : pick.LootModifiers[item.name]);
-        if (lootModifier == 0) {
-          continue;
-        }
+      }
+
+      if (lootModifier == 0) {
+        continue;
       }
 
       // Stop processing items if the player's level is too low
@@ -93,18 +94,21 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
   $cancelLink.show();
 
   var multiplier = 0;
-  if (recipe.requiresForge) {
+  if (recipe.forge) {
     for (var prop in p.inventory.forges) {
       if(p.inventory.forges.hasOwnProperty(prop)) {
-        var forgeLevel = parseInt(prop);
-        var numForges = p.inventory.forges[prop];
-        multiplier += forgeLevel * numForges;
+        var smeltModifier = 1;
+        var forge = p.inventory.forges[prop];
+        smeltModifier = (forge.SmeltModifiers && typeof forge.SmeltModifiers[recipe.name] != "undefined" ? forge.SmeltModifiers[recipe.name] : smeltModifier);
+        multiplier += smeltModifier;
       }
     }
   }
 
   multiplier = multiplier || 1;
   var craftTime = Math.round(recipe.craftTime * 1000 / multiplier);
+
+  var craftTime = this.cheat ? 0 : craftTime;
 
   // Begin the crafting animation.
   var count = amount;
@@ -138,7 +142,39 @@ Game.prototype.craftRecipe = function(recipe, amount, el) {
         p.craft(recipe);
         g.updateUI();
         g.craftRecipe(recipe, --count, el);
+
+/* TODO:
+          Can only use 4 forges at a time.
+          Crafting a forge requires 4 of the previous level + some other mats.
+          When no forges are in use and no smelting is being performed, all 4 forges will be available (checkbox checked) for smelting.
+          Unchecking an available forge means it will not be used when a smelting request is made. This will allow for smelting multiple types of ore at once.
+          Whenever a forge is in use, it is no longer available to take new smelting requests (checkbox disabled).
+
+        if (recipe.Item.slot == Slot.Forge) {
+          if (p.inventory.forges[recipe.itemLevel] == 1) {
+            $('<th/>',
+            {
+              id: 'fn_' + recipe.itemLevel,
+              text: recipe.name.replace(' Forge', '')
+            })
+            .appendTo('#forgeNames');
+            $('<td/>',
+            {
+              id: 'f_' + recipe.itemLevel
+            }).append(
+              $('<img/>',
+              {
+                id: 'fi_' + recipe.itemLevel,
+                src: 'images/forge.png'
+              })
+            )
+            .appendTo('#forgeList');
+            $('#forges').show();
+          }
+        }
+*/
       }
+
 
       if (count == 0) {
         $(this).removeClass('animating');
@@ -197,8 +233,7 @@ Game.prototype.drawRecipes = function() {
   var g = window.game;
   var p = g.player;
 
-  for (var prop in Recipes)
-  {
+  for (var prop in Recipes) {
     if(Recipes.hasOwnProperty(prop)) {
       var recipe = Recipes[prop];
       if (this.player.level >= recipe.minLevel) {
@@ -424,13 +459,13 @@ drawRecipeRequirements = function(el) {
     }).appendTo($div);
   }
 
-  if (recipe.requiresForge) {
+  if (recipe.forge) {
     var $reqForge = $('<p/>', {
       id: 'requiresForge',
-      text: "Requires Forge",
+      text: 'Requires ' + recipe.forge.name,
     }).appendTo($div);
 
-    if (!p.equipment.items[Slot.Forge]) {
+    if (!p.inventory.forges.some(function(f) { return f.level >= recipe.forge.level })) {
       $reqForge.addClass('missing');
     }
   }
@@ -514,4 +549,5 @@ $(document).ready(function() {
     game.drawLevel();
     game.drawRecipes();
     game.recipeWidth = $('#recipeList li:first').width();
+    $('#forges').hide();
 });
