@@ -61,9 +61,5 @@ Player.prototype.collect = function(drops) {
 }
 
 Player.prototype.getCraftableAmount = function(recipe) {
-  if (recipe.forge && !this.inventory.forges.some(function(f) { return f.level >= recipe.forge.level })) {
-    return 0;
-  }
-
   return this.inventory.getCraftableAmount(recipe);
 }

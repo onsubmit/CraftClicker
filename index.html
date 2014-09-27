@@ -2,6 +2,7 @@
   <head>
     <title>CraftClicker</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
     <script type="text/javascript" src="js/resources.js"></script>
@@ -11,6 +12,7 @@
     <script type="text/javascript" src="js/game.js"></script>
 
     <link type="text/css" href="css/styles.css" rel="stylesheet"  />
+    <link type="text/css" href="css/jquery-ui.min.css" rel="stylesheet"  />
   </head>
   <body>
     <div id="container">
@@ -24,12 +26,15 @@
           <ul id="recipeList">
           </ul>
         </div>
-        <div id="recipeRequirements">
+        <div id="recipeRequirementsScroll">
+          <div id="recipeRequirements"></div>
         </div>
-        <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
-        <input id="craftAmount" type="number" min="1" value="1"></input>
-        <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
-        <input id="gather" type="button" value="Gather" onclick="game.step();" />
+        <div id="actions">
+          <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
+          <input id="craftAmount" type="number" min="1" value="1"></input>
+          <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
+          <input id="gather" type="button" value="Gather" onclick="game.step();" />
+        </div>
       </div>
       <div id="inventory">
         <table id="inventoryTable">
@@ -45,18 +50,18 @@
       <table>
         <thead>
           <tr id="forgeNames">
-            <th>Empty</th>
-            <th>Empty</th>
-            <th>Empty</th>
-            <th>Empty</th>
+            <th id="fn0">Empty</th>
+            <th id="fn1">Empty</th>
+            <th id="fn2">Empty</th>
+            <th id="fn3">Empty</th>
           </tr>
         </thead>
         <tbody>
           <tr id="forgeList">
-            <td><img src="images/forge-disabled.png" /></td>
-            <td><img src="images/forge-disabled.png" /></td>
-            <td><img src="images/forge-disabled.png" /></td>
-            <td><img src="images/forge-disabled.png" /></td>
+            <td id="f0"><img src="images/forge-disabled.png" /></td>
+            <td id="f1"><img src="images/forge-disabled.png" /></td>
+            <td id="f2"><img src="images/forge-disabled.png" /></td>
+            <td id="f3"><img src="images/forge-disabled.png" /></td>
           </tr>
         </tbody>
       </table>
