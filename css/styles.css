@@ -85,6 +85,7 @@ a:hover.cancel {
 
 ul#recipeList li.selectedRecipe {
   font-weight: bold;
+  border: 1px solid white;
 }
 
 ul#recipeList li.background {

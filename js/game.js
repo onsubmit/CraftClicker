@@ -318,42 +318,6 @@ Game.prototype.drawRecipes = function() {
                   text: amount > 0 ? '[' + amount + ']' : ''
                 })
               )
-              /*
-              .append(
-                $('<a/>',
-                {
-                  id: 'rc_' + id,
-                  class: 'floatRight cancel',
-                  text: 'x',
-                  title: 'Cancel',
-                  href: '#',
-                  click: function(event) {
-                    var $el = $(this).parents('li');
-                    var elRecipe = $el.data();
-
-                    // Dequeue the crafting request
-                    delete p.crafting[elRecipe.name];
-
-                    // Stop the animation
-                    $el.stop();
-
-                    // Return the width of the recipe to full-width
-                    $el.width(g.recipeWidth)
-
-                    // Hide the cancel icon
-                    $(this).hide();
-
-                    // Remove the background animation bar (unless recipe is selected)
-                    if (!$el.hasClass('selectedRecipe')) {
-                      unselectRecipe($el);
-                    }
-
-                    // Prevent the click event from bubbling up to the parent.
-                    // This was causing the parent <li> onclick event to fire, selecting the cancelled recipe.
-                    event.stopPropagation();
-                  }
-                }).hide()
-              )*/
             )
             .css('color', g.determineRecipeColor(recipe))
             .click(function() { selectRecipe($(this)) })
@@ -458,9 +422,12 @@ selectRecipe = function(el) {
     el.css('background-color', el.css('color'))
     el.css('color', '')
     el.addClass('background');
+    $('#craft').val('Craft');
+    $('#craftAll').removeAttr('disabled');
   }
   else {
-    $('#craft').val('Craft');
+    $('#craft').val('Cancel');
+    $('#craftAll').prop('disabled', 'disabled');
   }
 
   var disabled = el.find('span').text() == '';
@@ -468,7 +435,7 @@ selectRecipe = function(el) {
     $('#craft').prop('disabled', 'disabled');
     $('#craftAll').prop('disabled', 'disabled');
   }
-  else {
+  else if (!el.hasClass('animating')) {
     $('#craft').removeAttr('disabled');
     $('#craft').val('Craft');
     $('#craftAll').removeAttr('disabled');
