@@ -208,6 +208,10 @@ div#gatherContainer {
   position: relative;
 }
 
+img#gather {
+  cursor: hand;
+}
+
 div#durability {
   height: 2px;
   background-color: green;

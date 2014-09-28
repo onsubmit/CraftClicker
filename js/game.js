@@ -70,7 +70,12 @@ Game.prototype.gather = function() {
     }
     else {
       // The pick is not broken.
-      $('#durability').show().width(40 * pick.durability / pick.maxDurability);
+      var maxWidth = 40;
+      var width = maxWidth * pick.durability / pick.maxDurability;
+      var red = Math.floor(255 * (1 - width / maxWidth));
+      var green = Math.floor(192 * (width / maxWidth));
+      var rgb = 'rgb(' + red + ', ' + green + ', 0)';
+      $('#durability').show().width(width).css('background-color', rgb);
     }
   }
 
@@ -589,7 +594,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         href: "#",
       }).click(function()
       {
-        selectRecipe($('#r_' + reqId));
+        selectRecipe($('#r_' + $(this).prop('id').replace('rrn_', '')));
       }).appendTo($name);
 
       var reqAmount = p.getCraftableAmount(req.recipe);

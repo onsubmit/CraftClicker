@@ -70,13 +70,13 @@ Inventory.prototype.craft = function(recipe) {
   // Put the item into the inventory.
   // The item could be a forge if the forge array was full.
   if (this.items[recipe.name]) {
-    this.items[recipe.name].amount += 1;
+    this.items[recipe.name].amount += (recipe.makes || 1);
   }
   else {
     this.items[recipe.name] = 
     {
       Item: recipe.Item,
-      amount: 1
+      amount: (recipe.makes || 1)
     };
   }
 }
