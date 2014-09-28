@@ -2,7 +2,7 @@ function Game()
 {
   this.player = new Player();
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
-  setInterval(this.updateUI, 2000);
+  //setInterval(this.updateUI, 2000); re-enable when item selling is implemented
 }
 
 Game.prototype.updateUI = function() {
@@ -482,14 +482,32 @@ drawRecipeRequirements = function(el) {
   if (recipe.forge) {
     var $reqForge = $('<p/>', {
       id: 'requiresForge',
-      text: 'Requires ' + recipe.forge.name,
-    }).appendTo($div);
+      text: 'Requires '
+    });
+
+    var forgeId = recipe.forge.name.replace(/ /g, '');    
+    $('<a/>',
+    {
+      text: recipe.forge.name,
+      href: '#'
+
+    }).click(function()
+    {
+      selectRecipe($('#r_' + forgeId));
+    }).appendTo($reqForge);
+
+    $reqForge.appendTo($div);
 
     if (!p.inventory.forges.some(function(f) { return f.level >= recipe.forge.level })) {
       $reqForge.addClass('missing');
     }
   }
 
+  var $table = drawRecipeRequirementsTable(recipe, p, id);
+  $div.append($table);
+}
+
+drawRecipeRequirementsTable = function(recipe, p, id) {
   var $table = $('<table/>', {
     id: 'recipeRequirementList'
   });
@@ -522,10 +540,38 @@ drawRecipeRequirements = function(el) {
       text: (missingAmount > 0 ? currentAmount + '/' : '') + req.amount
     }).appendTo($row);
 
-    $('<td/>', {
-      id: 'rrn_' + id,
-      text: req.resource.name
-    }).appendTo($row);
+    var $name = $('<td/>');
+
+    if (req.recipe) {
+      var reqId = req.recipe.name.replace(/ /g, '')
+      $('<a/>',
+      {
+        id: 'rrn_' + reqId,
+        text: req.resource.name,
+        href: "#",
+      }).click(function()
+      {
+        selectRecipe($('#r_' + reqId));
+      }).appendTo($name);
+
+      var reqAmount = p.getCraftableAmount(req.recipe);
+      if (reqAmount > 0) {
+        $('<span/>', 
+        {
+          id: 'rra_' + reqId,
+          text: '[' + reqAmount + ']'
+        }).appendTo($name)
+      }
+    }
+    else {
+      $('<span/>',
+      {
+        id: 'rrn_' + reqId,
+        text: req.resource.name
+      }).appendTo($name);
+    }
+
+    $name.appendTo($row);
 
     if (missingAmount > 0) {
       $row.addClass('missing');
@@ -535,7 +581,7 @@ drawRecipeRequirements = function(el) {
   }
 
   $table.append($tbody);
-  $div.append($table);
+  return $table;
 }
 
 createTimeString = function(time) {

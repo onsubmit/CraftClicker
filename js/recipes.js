@@ -1,74 +1,57 @@
 var Recipes = {};
 
-Recipes.GoldBar =
+Recipes.Stick =
 {
-  name: "Gold Bar",
-  minLevel: Resources.GoldOre.minLevel,
-  craftTime: 3,
-  forge: Items.SturdyForge,
-  Requirements :
+  name: "Stick",
+  minLevel: 0,
+  craftTime: 1,
+  Requirements:
   [
-    { resource: Resources.GoldOre, amount: 1 },
-    { resource: Resources.Coal, amount: 1 },
+    { resource: Resources.Wood, amount: 2 }
   ],
-  Item: Items.IronBar
+  Item: Items.Stick
 };
 
-Recipes.TinBar =
+Recipes.WoodenPick =
 {
-  name: "Tin Bar",
-  minLevel: Resources.TinOre.minLevel,
-  craftTime: 3,
-  forge: Items.SturdyForge,
-  Requirements :
+  name: "Wooden Pick",
+  text: "Allows for gathering Stone and Coal.",
+  minLevel: 2,
+  craftTime: 2,
+  Requirements:
   [
-    { resource: Resources.TinOre, amount: 1 },
-    { resource: Resources.Coal, amount: 1 },
+    { resource: Items.Stick, amount: 2, recipe: Recipes.Stick },
+    { resource: Resources.Wood, amount: 3 }
   ],
-  Item: Items.CopperBar
+  Item: Items.WoodenPick
 };
 
-Recipes.IronBar =
+Recipes.StonePick =
 {
-  name: "Iron Bar",
-  minLevel: 4,
+  name: "Stone Pick",
+  text: "Allows for gathering Iron and Copper ore and doubles the amount of Stone and Coal gathered.",
+  minLevel: 3,
   craftTime: 3,
-  forge: Items.BasicForge,
-  Requirements :
+  Requirements:
   [
-    { resource: Resources.IronOre, amount: 1 },
-    { resource: Resources.Coal, amount: 1 },
+      { resource: Items.Stick, amount: 2, recipe: Recipes.Stick },
+      { resource: Resources.Stone, amount: 3 }
   ],
-  Item: Items.IronBar
+  Item: Items.StonePick
 };
 
-Recipes.CopperBar =
+Recipes.CastIronPick =
 {
-  name: "Copper Bar",
-  minLevel: 4,
+  name: "Cast Iron Pick",
+  text: "Allows for gathering Gold and Tin ore and doubles the amount of Stone, Coal, and Iron and Copper ores gathered.",
+  minLevel: 7,
   craftTime: 3,
-  forge: Items.BasicForge,
-  Requirements :
+  Requirements:
   [
-    { resource: Resources.CopperOre, amount: 1 },
-    { resource: Resources.Coal, amount: 1 },
+      { resource: Items.Stick, amount: 2, recipe: Recipes.Stick },
+      { resource: Items.IronBar, amount: 3 }
   ],
-  Item: Items.CopperBar
-};
-
-Recipes.SturdyForge =
-{
-  name: "Sturdy Forge",
-  text: "Allows for smelting Tin and Gold. Smelts Iron and Copper at 2x speed",
-  minLevel: 10,
-  craftTime: 16,
-  Requirements :
-  [
-    { resource: Items.IronBar, amount: 8 },
-    { resource: Items.CopperBar, amount: 8 },
-    { resource: Items.BasicForge, amount: 4 }
-  ],
-  Item: Items.SturdyForge
+  Item: Items.CastIronPick
 };
 
 Recipes.BasicForge =
@@ -84,56 +67,73 @@ Recipes.BasicForge =
   Item: Items.BasicForge
 };
 
-Recipes.CastIronPick =
+Recipes.SturdyForge =
 {
-  name: "Cast Iron Pick",
-  text: "Allows for gathering Gold and Tin ore and doubles the amount of Stone, Coal, and Iron and Copper ores gathered.",
-  minLevel: 7,
+  name: "Sturdy Forge",
+  text: "Allows for smelting Tin and Gold. Smelts Iron and Copper at 2x speed",
+  minLevel: 10,
+  craftTime: 16,
+  Requirements:
+  [
+    { resource: Items.IronBar, amount: 8, recipe: Recipes.IronBar },
+    { resource: Items.CopperBar, amount: 8, recipe: Recipes.CopperBar },
+    { resource: Items.BasicForge, amount: 4, recipe: Recipes.BasicForge }
+  ],
+  Item: Items.SturdyForge
+};
+
+Recipes.CopperBar =
+{
+  name: "Copper Bar",
+  minLevel: 4,
   craftTime: 3,
+  forge: Items.BasicForge,
   Requirements:
   [
-      { resource: Items.Stick, amount: 2 },
-      { resource : Items.IronBar, amount : 3 }
+    { resource: Resources.CopperOre, amount: 1 },
+    { resource: Resources.Coal, amount: 1 },
   ],
-  Item: Items.CastIronPick
+  Item: Items.CopperBar
 };
 
-Recipes.StonePick =
+Recipes.IronBar =
 {
-  name: "Stone Pick",
-  text: "Allows for gathering Iron and Copper ore and doubles the amount of Stone and Coal gathered.",
-  minLevel: 3,
+  name: "Iron Bar",
+  minLevel: 4,
   craftTime: 3,
+  forge: Items.BasicForge,
   Requirements:
   [
-      { resource: Items.Stick, amount: 2 },
-      { resource : Resources.Stone, amount : 3 }
+    { resource: Resources.IronOre, amount: 1 },
+    { resource: Resources.Coal, amount: 1 },
   ],
-  Item: Items.StonePick
+  Item: Items.IronBar
 };
 
-Recipes.WoodenPick =
+Recipes.TinBar =
 {
-  name: "Wooden Pick",
-  text: "Allows for gathering Stone and Coal.",
-  minLevel: 2,
-  craftTime: 2,
+  name: "Tin Bar",
+  minLevel: Resources.TinOre.minLevel,
+  craftTime: 3,
+  forge: Items.SturdyForge,
   Requirements:
   [
-    { resource: Items.Stick, amount: 2 },
-    { resource: Resources.Wood, amount: 3 }
+    { resource: Resources.TinOre, amount: 1 },
+    { resource: Resources.Coal, amount: 1 },
   ],
-  Item: Items.WoodenPick
+  Item: Items.TinBar
 };
 
-Recipes.Stick =
+Recipes.GoldBar =
 {
-  name: "Stick",
-  minLevel: 0,
-  craftTime: 1,
+  name: "Gold Bar",
+  minLevel: Resources.GoldOre.minLevel,
+  craftTime: 3,
+  forge: Items.SturdyForge,
   Requirements:
   [
-    { resource: Resources.Wood, amount: 2 }
+    { resource: Resources.GoldOre, amount: 1 },
+    { resource: Resources.Coal, amount: 1 },
   ],
-  Item: Items.Stick
+  Item: Items.GoldBar
 };

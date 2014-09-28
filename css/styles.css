@@ -74,15 +74,6 @@ ul#recipeList li div.recipeName {
   width: 260px;
 }
 
-a:link.cancel, a:visited.cancel, a:active.cancel {
-  color: #fff;
-}
-
-a:hover.cancel {
-  color: #ddd;
-}
-
-
 ul#recipeList li.selectedRecipe {
   font-weight: bold;
   border: 1px solid white;
@@ -117,6 +108,10 @@ table#recipeRequirementList td {
   padding: 2px;
 }
 
+table#recipeRequirementList td span {
+  padding-left: 4px;
+}
+
 input#craftAmount {
   width: 40px;
 }
@@ -133,8 +128,20 @@ input#craftAmount {
   float: right;
 }
 
-.missing {
+a:link, a:visited {
+  color: white;
+}
+
+a:hover, a:active {
+  color: #bbb;
+}
+
+.missing, .missing a:link, .missing a:visited {
   color: red;
+}
+
+.missing a:hover, .missing a:active {
+  color: #b00;
 }
 
 div#recipeLevel {
