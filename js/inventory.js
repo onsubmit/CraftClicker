@@ -9,9 +9,9 @@ Inventory.prototype.craft = function(recipe) {
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
 
-    var reqIsForge = req.resource.slot && req.resource.slot == Slot.Forge;
+    var reqIsForge = req.resource.type && req.resource.type == ItemType.Forge;
     if (!reqIsForge) {
-      this.items[req.resource.name] -= req.amount;
+      this.items[req.resource.name].amount -= req.amount;
     }
     else {
       // The requirement is a forge.
@@ -28,12 +28,12 @@ Inventory.prototype.craft = function(recipe) {
       // Pick remaining required forges from the inventory.
       if (numForgesConsumed < this.maxNumForges) {
         var remainingToConsume = this.maxNumForges - numForgesConsumed;
-        this.items[req.resource.name] -= remainingToConsume;
+        this.items[req.resource.name].amount -= remainingToConsume;
       }
     }
   }
 
-  var isForge = recipe.Item && recipe.Item.slot && recipe.Item.slot == Slot.Forge;
+  var isForge = recipe.Item && recipe.Item.type && recipe.Item.type == ItemType.Forge;
   if (isForge) {
     if (this.forges.length < this.maxNumForges) {
       // There is an open forge slot.
@@ -44,8 +44,8 @@ Inventory.prototype.craft = function(recipe) {
       // there will be open slots in the forge array even after adding the newly crafted one.
       // Move as many forges from the inventory to the forge array as we can. 
       if (reqForge && this.forges.length < this.maxNumForges) {
-        while (this.items[reqForge.name] > 0 && this.forges.length < this.maxNumForges) {
-          this.items[reqForge.name] -= 1;
+        while (this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
+          this.items[reqForge.name].amount -= 1;
           this.forges.push(reqForge);
         }
       }
@@ -54,14 +54,30 @@ Inventory.prototype.craft = function(recipe) {
       return;
     }
   }
+
+  var isPick = recipe.Item && recipe.Item.type && recipe.Item.type == ItemType.Pick;
+  if (isPick) {
+    if (!this.pick) {
+      this.pick = {};
+      $.extend(true, this.pick, recipe.Item); // Deep copy pick item (as to not modify original item)
+      this.pick.maxDurability = this.pick.durability;
+      $('#gather').prop("src", this.pick.image);
+      $('#currentPick').text(this.pick.name);
+      return;
+    }
+  }
   
   // Put the item into the inventory.
   // The item could be a forge if the forge array was full.
   if (this.items[recipe.name]) {
-    this.items[recipe.name] += 1;
+    this.items[recipe.name].amount += 1;
   }
   else {
-    this.items[recipe.name] = 1;
+    this.items[recipe.name] = 
+    {
+      Item: recipe.Item,
+      amount: 1
+    };
   }
 }
 
@@ -70,10 +86,14 @@ Inventory.prototype.merge = function(drops) {
     if(drops.hasOwnProperty(prop)) {
       var drop = drops[prop];
       if (this.items[drop.item.name]) {
-        this.items[drop.item.name] += drop.amount;
+        this.items[drop.item.name].amount += drop.amount;
       }
       else {
-        this.items[drop.item.name] = drop.amount;
+        this.items[drop.item.name] = 
+        {
+          Item: drop.item,
+          amount: drop.amount
+        };
       }
     }
   }
@@ -93,10 +113,10 @@ Inventory.prototype.getCraftableAmount = function(recipe) {
     var req = recipe.Requirements[i];
     var currentAmount = 0;
     if (this.items[req.resource.name]) {
-      currentAmount = this.items[req.resource.name];
+      currentAmount = this.items[req.resource.name].amount;
     }
 
-    var isForge = req.resource.slot && req.resource.slot == Slot.Forge;
+    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
     if (isForge) {
       var forgeLevel = req.resource.level;
       for (var j = 0; j < this.forges.length; j++) {
@@ -128,4 +148,20 @@ Inventory.prototype.drawForges = function() {
       $('#f' + i).empty().append($('<img/>', { src: 'images/forge-disabled.png' }));
     }
   }
+}
+
+Inventory.prototype.getHighestLevelPick = function() {
+  var pick = null;
+  var highestLevel = 0;
+  for (var prop in this.items) {
+    if(this.items.hasOwnProperty(prop)) {
+      var item = this.items[prop].Item;
+      if (item.type && item.type == ItemType.Pick && this.items[prop].amount > 0 && item.level > highestLevel) {
+        pick = item;
+        highestLevel = item.level;
+      }
+    }
+  }
+
+  return pick;
 }

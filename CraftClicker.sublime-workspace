@@ -143,14 +143,6 @@
 				"line_ending": "Windows"
 			}
 		},
-		{
-			"file": "js/equipment.js",
-			"settings":
-			{
-				"buffer_size": 486,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":

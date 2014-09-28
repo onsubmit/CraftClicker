@@ -29,7 +29,7 @@ Recipes.WoodenPick =
 Recipes.StonePick =
 {
   name: "Stone Pick",
-  text: "Allows for gathering Iron and Copper ore and doubles the amount of Stone and Coal gathered.",
+  text: "Allows for gathering Iron and Copper ore.",
   minLevel: 3,
   craftTime: 3,
   Requirements:
@@ -43,7 +43,7 @@ Recipes.StonePick =
 Recipes.CastIronPick =
 {
   name: "Cast Iron Pick",
-  text: "Allows for gathering Gold and Tin ore and doubles the amount of Stone, Coal, and Iron and Copper ores gathered.",
+  text: "Allows for gathering Gold and Tin ore.",
   minLevel: 7,
   craftTime: 3,
   Requirements:
@@ -57,7 +57,7 @@ Recipes.CastIronPick =
 Recipes.BasicForge =
 {
   name: "Basic Forge",
-  text: "Allows for smelting Iron and Copper.",
+  text: "Smelts Iron and Copper ores.",
   minLevel: 4,
   craftTime: 8,
   Requirements:
@@ -70,7 +70,7 @@ Recipes.BasicForge =
 Recipes.SturdyForge =
 {
   name: "Sturdy Forge",
-  text: "Allows for smelting Tin and Gold. Smelts Iron and Copper at 2x speed",
+  text: "Smelts Tin and Gold ores. Smelts lesser ores 50% faster than the Basic Forge.",
   minLevel: 10,
   craftTime: 16,
   Requirements:

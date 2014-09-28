@@ -2,7 +2,6 @@ function Player() {
   this.level = 0;
   this.maxLevel = 2;
   this.inventory = new Inventory();
-  this.equipment = new Equipment();
   this.crafting = {};
   this.skillIncreaseChanges = [0, 0.25, 0.75, 1];
 }
@@ -10,11 +9,6 @@ function Player() {
 Player.prototype.craft = function(recipe, amount) {
   amount = amount || 1;
   this.inventory.craft(recipe, amount);
-
-  if (recipe.Item && recipe.Item.slot) {
-    this.equipment.equip(recipe.Item);
-  }
-
   this.increaseLevel(recipe);
 }
 

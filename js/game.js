@@ -21,11 +21,10 @@ Game.prototype.step = function() {
 
 Game.prototype.gather = function() {
   var drops = [];
-  for (var prop in Resources)
-  {
+  var pick = this.player.inventory.pick;
+  for (var prop in Resources) {
     if(Resources.hasOwnProperty(prop)) {
       var item = Resources[prop];
-      var pick = this.player.equipment.items[Slot.Pick];
       var lootModifier = (item == Resources.Wood ? 1 : 0);
       if (pick) {
         lootModifier = (typeof pick.LootModifiers[item.name] == "undefined" ? lootModifier : pick.LootModifiers[item.name]);
@@ -43,6 +42,35 @@ Game.prototype.gather = function() {
       if (item.dropChance > this.r()) {
         drops.push({ item: item, amount: Math.ceil(this.r() * item.maxDropAmount * lootModifier)})
       }
+    }
+  }
+
+  if (pick) {
+    pick.durability -= 1;
+    if (pick.durability == 0) {
+      // The pick just broke.
+      // Replace it with the highest level pick in the the player's inventory.
+      var newPick = this.player.inventory.getHighestLevelPick();
+
+      if (newPick) {
+        this.player.inventory.items[newPick.name].amount -= 1;
+        this.player.inventory.pick = {};
+        $.extend(true, this.player.inventory.pick, newPick); // Deep copy new pick item (as to not modify original item)
+        this.player.inventory.pick.maxDurability = newPick.durability;
+        $('#gather').prop('src', newPick.image);
+        $('#currentPick').text(newPick.name);
+      }
+      else {
+        delete this.player.inventory.pick;
+        $('#currentPick').text('Bare Hands');
+        $('#gather').prop('src', 'images/pick-disabled.png');
+      }
+
+      $('#durability').hide();
+    }
+    else {
+      // The pick is not broken.
+      $('#durability').show().width(40 * pick.durability / pick.maxDurability);
     }
   }
 
@@ -340,54 +368,64 @@ Game.prototype.drawRecipes = function() {
 Game.prototype.drawInventory = function() {
   for (var prop in this.player.inventory.items) {
     if(this.player.inventory.items.hasOwnProperty(prop)) {
-      var amount = this.player.inventory.items[prop];
+      var amount = this.player.inventory.items[prop].amount;
       var id = prop.replace(/ /g, '')
       var value = $('#iv_' + id);
       if (value.length) {
-        value.text(amount);
-      }
-      else {
-        var $newRow = $('<tr/>')
-          .append(
-            $('<td/>',
-            {
-              id: 'in_' + id,
-              text: prop,
-              class: 'alignRight'
-            })
-          )
-          .append(
-            $('<td/>',
-            {
-              id: 'iv_' + id,
-              text: amount
-            })
-          );
-
-        // If no invetory rows exist, add it to the <tbody>
-        var $tbody = $('#inventoryTable tbody');
-        var $rows = $('#inventoryTable td[id*=in]');
-        if (!$rows.length) {
-          $tbody.append($newRow);
-          return;
-        }
-
-        // Keep the table sorted.
-        // Find the first row whose name is alphatetically greater than the new name
-        var $row = null;
-        $('#inventoryTable td[id*=in]').each(function() {
-          if ($(this).text().localeCompare(prop) == 1) {
-            $row = $(this).parent();
-            return false;
-          }
-        });
-
-        if ($row) {
-          $row.before($newRow);
+        if (amount > 0) {
+          value.text(amount);
         }
         else {
-          // No row found, put it at the end
-          $('#inventoryTable tbody tr:last').after($newRow);
+          // No more of this item in the inventory. Remove the row.
+          $('#ir_' + id).remove();
+        }
+      }
+      else {
+        if (amount > 0) {
+          var $newRow = $('<tr/>', 
+          {
+            id: 'ir_' + id
+          }).append(
+              $('<td/>',
+              {
+                id: 'in_' + id,
+                text: prop,
+                class: 'alignRight'
+              })
+            )
+            .append(
+              $('<td/>',
+              {
+                id: 'iv_' + id,
+                text: amount
+              })
+            );
+
+          // If no invetory rows exist, add it to the <tbody>
+          var $tbody = $('#inventoryTable tbody');
+          var $rows = $('#inventoryTable td[id*=in]');
+          if (!$rows.length) {
+            $tbody.append($newRow);
+            return;
+          }
+
+          // Keep the table sorted.
+          // Find the first row whose name is alphatetically greater than the new name
+          var $row = null;
+          $('#inventoryTable td[id*=in]').each(function() {
+            if ($(this).text().localeCompare(prop) == 1) {
+              $row = $(this).parent();
+              return false;
+            }
+          });
+
+          if ($row) {
+            $row.before($newRow);
+          }
+          else {
+            // No row found, put it at the end
+            $('#inventoryTable tbody tr:last').after($newRow);
+          }
         }
       }
     }
@@ -518,7 +556,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
     var isForge = req.resource.slot && req.resource.slot == Slot.Forge;
 
     var missingAmount = 0;
-    var currentAmount = p.inventory.items[req.resource.name] ? p.inventory.items[req.resource.name] : 0;
+    var currentAmount = p.inventory.items[req.resource.name] ? p.inventory.items[req.resource.name].amount : 0;
     if (isForge) {
       var forgeLevel = req.resource.level;
       for (var j = 0; j < p.inventory.forges.length; j++) {
@@ -559,15 +597,15 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         $('<span/>', 
         {
           id: 'rra_' + reqId,
-          text: '[' + reqAmount + ']'
+          text: '[' + reqAmount + ']',
+          class: 'amount'
         }).appendTo($name)
       }
     }
     else {
       $('<span/>',
       {
-        id: 'rrn_' + reqId,
-        text: req.resource.name
+        text: req.resource.name,
       }).appendTo($name);
     }
 
@@ -637,18 +675,20 @@ $(document).ready(function() {
       handles: "s",
       minHeight: 200,
       alsoResize: '#recipeRequirements'
-
     });
+
+    $('#durability').hide();
+    $('#gatherLink').click(function(e) { e.preventDefault(); });
 });
 
 $(document).keypress(function(e) {
   if (e.which == 32) { // space
     game.craft($('#craftAmount').val())
   }
-  else if (e.which == 97) { // 'a'
+  else if (e.which  == 65 || e.which == 97) { // '[Aa]'
     game.craftAll();
   }
-  else if (e.which == 103) { // 'g'
+  else if (e.which == 71 || e.which == 103) { // '[Gg]'
     game.step();
   }
 });

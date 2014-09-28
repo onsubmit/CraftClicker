@@ -112,6 +112,14 @@ table#recipeRequirementList td span {
   padding-left: 4px;
 }
 
+table#recipeRequirementList td span.amount {
+  color: #ccc;
+}
+
+table#recipeRequirementList tr.missing span.amount {
+  color: #b00;
+}
+
 input#craftAmount {
   width: 40px;
 }
@@ -157,16 +165,56 @@ div#recipeLevelBarText {
   width: 268px;
 }
 
+div#actions {
+  height: 40px;
+  padding: 4px;
+  background-color: white;
+  text-align: center;
+}
+
+div#actions input[type=button] {
+  width: 80px;
+}
+
 div#actions input {
-  margin: 4px 2px 4px 2px;
+  height: 40px;
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
 }
 
 input#craft {
   width: 60px;
 }
 
-input#gather {
-  float: right;
+div#gatherActions {
+  background-color: white;
+  text-align: center;
+  height: 40px;
+  line-height: 40px;
+  font-weight: bold;
+  padding: 4px;
+}
+
+div#gatherActions a:link, div#gatherActions a:visited {
+  color: black;
+}
+
+div#gatherActions a:hover, div#gatherActions a:active {
+  color: #666;
+}
+
+div#gatherContainer {
+  position: relative;
+}
+
+div#durability {
+  height: 2px;
+  background-color: green;
+  position: absolute;
+  bottom: -2;
+  left: 0;
+  width: 40px;
 }
 
 div#forges {

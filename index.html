@@ -6,7 +6,6 @@
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
     <script type="text/javascript" src="js/resources.js"></script>
-    <script type="text/javascript" src="js/equipment.js"></script>
     <script type="text/javascript" src="js/items.js"></script>
     <script type="text/javascript" src="js/recipes.js"></script>
     <script type="text/javascript" src="js/game.js"></script>
@@ -31,9 +30,17 @@
         </div>
         <div id="actions">
           <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
-          <input id="craftAmount" type="number" min="1" value="1"></input>
+          <input id="craftAmount" value="1" onkeypress='return event.charCode >= 48 && event.charCode <= 57'></input>
           <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
-          <input id="gather" type="button" value="Gather" onclick="game.step();" />
+        </div>
+        <div id="gatherActions">
+          <span><a href="#" id="gatherLink" onclick="game.step();">Gather with <i id="currentPick">Bare Hands</i></a></span>
+          <div class="floatRight">
+            <div id="gatherContainer">
+              <img id="gather" src="images/pick-disabled.png" alt="Gather" title="Gather" onclick="game.step();" />
+              <div id="durability"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="inventory">
