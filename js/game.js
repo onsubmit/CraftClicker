@@ -2,7 +2,7 @@ function Game()
 {
   this.player = new Player();
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
-  //setInterval(this.updateUI, 2000); re-enable when item selling is implemented
+  //setInterval(this.updateUI, 2000); Might not be necessary
 }
 
 Game.prototype.updateUI = function() {
@@ -111,7 +111,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
 
     // Stop the animation
     el.stop();
-    $(this).removeClass('animating');
+    el.removeClass('animating');
 
     // Return the width of the recipe to full-width
     el.width(g.recipeWidth);
@@ -553,7 +553,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
   var $tbody = $('<tbody/>');
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
-    var isForge = req.resource.slot && req.resource.slot == Slot.Forge;
+    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
 
     var missingAmount = 0;
     var currentAmount = p.inventory.items[req.resource.name] ? p.inventory.items[req.resource.name].amount : 0;
@@ -682,6 +682,11 @@ $(document).ready(function() {
 });
 
 $(document).keypress(function(e) {
+  if ($('#craftAmount').is(":focus")) {
+    return;
+  }
+
+  e.preventDefault(); // Prevent page down on hitting space bar
   if (e.which == 32) { // space
     game.craft($('#craftAmount').val())
   }
@@ -690,5 +695,14 @@ $(document).keypress(function(e) {
   }
   else if (e.which == 71 || e.which == 103) { // '[Gg]'
     game.step();
+  }
+  else if (e.which >= 49 && e.which <= 57) { // '[1-9]'
+    var amount = e.which - 48;
+    var $current = $('#recipeList li.selectedRecipe');
+    if ($current.length > 0) {
+      var g = window.game;
+      var recipe = $current.data();
+      g.craftRecipe(recipe, amount, $current, amount > 1 /* isCraftingMultiple */);
+    }
   }
 });

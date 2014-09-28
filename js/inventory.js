@@ -44,7 +44,7 @@ Inventory.prototype.craft = function(recipe) {
       // there will be open slots in the forge array even after adding the newly crafted one.
       // Move as many forges from the inventory to the forge array as we can. 
       if (reqForge && this.forges.length < this.maxNumForges) {
-        while (this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
+        while (this.items[reqForge.name] && this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
           this.items[reqForge.name].amount -= 1;
           this.forges.push(reqForge);
         }
