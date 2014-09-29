@@ -1,13 +1,11 @@
 <html>
   <head>
     <title>CraftClicker</title>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
     <script type="text/javascript" src="js/resources.js"></script>
     <script type="text/javascript" src="js/items.js"></script>
-    <script type="text/javascript" src="js/recipes.js"></script>
     <script type="text/javascript" src="js/game.js"></script>
 
     <link type="text/css" href="css/styles.css" rel="stylesheet"  />
@@ -15,10 +13,19 @@
   </head>
   <body>
     <div id="container">
+      <div id="gatherActions">
+        <div>
+          <div id="gatherContainer">
+            <img id="gather" src="images/pick-disabled.png" alt="Gather" title="Gather" onclick="game.step();" />
+            <div id="durability"></div>
+          </div>
+        </div>
+        <div><a href="#" id="gatherLink" onclick="game.step();">Gather resources with your <i id="currentPick">Bare Hands</i></a></div>
+      </div>
       <div id="recipes">
-        <div id="recipeLevel"class="smallBar">
-          <div id="recipeLevelBar" class="smallBar">
-              <div id="recipeLevelBarText" class="smallBar smallBarText"></div>
+        <div id="experience"class="smallBar">
+          <div id="experienceBar" class="smallBar">
+              <div id="experienceBarText" class="smallBar smallBarText"></div>
           </div>
         </div>
         <div id="recipeScroll">
@@ -33,43 +40,36 @@
           <input id="craftAmount" value="1" onkeypress='return event.charCode >= 48 && event.charCode <= 57'></input>
           <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
         </div>
-        <div id="gatherActions">
-          <span><a href="#" id="gatherLink" onclick="game.step();">Gather with <i id="currentPick">Bare Hands</i></a></span>
-          <div class="floatRight">
-            <div id="gatherContainer">
-              <img id="gather" src="images/pick-disabled.png" alt="Gather" title="Gather" onclick="game.step();" />
-              <div id="durability"></div>
-            </div>
-          </div>
-        </div>
       </div>
       <div id="inventory">
+        <h2>Forges</h2>
+        <div id="forges">
+          <table>
+            <thead>
+              <tr id="forgeNames">
+                <th id="fn0">Empty</th>
+                <th id="fn1">Empty</th>
+                <th id="fn2">Empty</th>
+                <th id="fn3">Empty</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="forgeList">
+                <td id="f0"><img src="images/forge-disabled.png" /></td>
+                <td id="f1"><img src="images/forge-disabled.png" /></td>
+                <td id="f2"><img src="images/forge-disabled.png" /></td>
+                <td id="f3"><img src="images/forge-disabled.png" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h2>Inventory</h2>
         <table id="inventoryTable">
           <thead>
             <th>Item</th>
             <th>Amount</th>
           </thead>
           <tbody>
-          </tbody>
-        </table>
-      </div>
-      <div id="forges">
-        <table>
-          <thead>
-            <tr id="forgeNames">
-              <th id="fn0">Empty</th>
-              <th id="fn1">Empty</th>
-              <th id="fn2">Empty</th>
-              <th id="fn3">Empty</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr id="forgeList">
-              <td id="f0"><img src="images/forge-disabled.png" /></td>
-              <td id="f1"><img src="images/forge-disabled.png" /></td>
-              <td id="f2"><img src="images/forge-disabled.png" /></td>
-              <td id="f3"><img src="images/forge-disabled.png" /></td>
-            </tr>
           </tbody>
         </table>
       </div>

@@ -49,6 +49,8 @@ div#recipes {
 div#recipeScroll {
   height: 400px;
   border-bottom: 2px solid #666;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 ul#recipeList {
@@ -136,6 +138,10 @@ input#craftAmount {
   float: right;
 }
 
+.floatLeft {
+  float: left;
+}
+
 a:link, a:visited {
   color: white;
 }
@@ -152,16 +158,16 @@ a:hover, a:active {
   color: #b00;
 }
 
-div#recipeLevel {
+div#experience {
   background-color: #0d0d0d;
   border: 1px solid #0d0d0d;
 }
 
-div#recipeLevelBar {
+div#experienceBar {
   background-color: #909;
 }
 
-div#recipeLevelBarText {
+div#experienceBarText {
   width: 268px;
 }
 
@@ -188,10 +194,9 @@ input#craft {
 }
 
 div#gatherActions {
+  clear: both;
   background-color: white;
   text-align: center;
-  height: 40px;
-  line-height: 40px;
   font-weight: bold;
   padding: 4px;
 }
@@ -206,6 +211,10 @@ div#gatherActions a:hover, div#gatherActions a:active {
 
 div#gatherContainer {
   position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 4px;
+  width: 40px
 }
 
 img#gather {
@@ -213,10 +222,10 @@ img#gather {
 }
 
 div#durability {
-  height: 2px;
+  height: 3px;
   background-color: green;
   position: absolute;
-  bottom: -2;
+  bottom: -4;
   left: 0;
   width: 40px;
 }
@@ -224,7 +233,7 @@ div#durability {
 div#forges {
   width: 100%;
   text-align: center;
-  clear: both;
+  margin-bottom: 20px;
 }
 
 div#forges table {
@@ -245,6 +254,10 @@ div#forges table td {
   width: 40px;
   margin: 0;
   padding: 8px;
+}
+
+div#help {
+  clear: both;
 }
 
 .smallBar {

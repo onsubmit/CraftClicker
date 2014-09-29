@@ -4,37 +4,49 @@ function Player() {
   this.inventory = new Inventory();
   this.crafting = {};
   this.skillIncreaseChanges = [0, 0.25, 0.75, 1];
+  this.xpPercentages = [0, 0.2, 0.325, 0.9];
+
+  this.money = 0;
+  this.xp   = 0;
+  this.xpMax = 20;
 }
 
-Player.prototype.craft = function(recipe, amount) {
+Player.prototype.craft = function(item, amount) {
   amount = amount || 1;
-  this.inventory.craft(recipe, amount);
-  this.increaseLevel(recipe);
-}
+  this.addXP(item.Recipe);
 
-Player.prototype.increaseLevel = function(recipe) {
-  var diff = this.determineRecipeDifficulty(recipe);
-  this.level += (Math.random() < this.skillIncreaseChanges[diff] ? 1 : 0);
-
-  if (this.level == this.maxLevel) {
-    var nextMaxLevel = this.maxLevel + 10;
-    for (var prop in Recipes) {
-      if(Recipes.hasOwnProperty(prop)) {
-        var recipe = Recipes[prop];
-        if (recipe.minLevel > this.maxLevel) {
-          if (recipe.minLevel < nextMaxLevel) {
-            nextMaxLevel = recipe.minLevel;
-          }
-        }
-      }
+  if (item.unlocks) {
+    // The crafting of this item unlocks the recipes for at least one other item.
+    for (var i = 0; i < item.unlocks.length; i++) {
+      var itemName = item.unlocks[i];
+      Items[itemName].Recipe.available = true;
+      Items[itemName].Recipe.level = this.level;
     }
 
-    this.maxLevel = nextMaxLevel;
+    delete item.unlocks;
+  }
+
+  this.inventory.craft(item, amount);
+
+
+}
+
+Player.prototype.addXP = function(recipe) {
+  var diff = this.determineRecipeDifficulty(recipe);
+  this.xp += Math.round(this.xpMax * (this.xpPercentages[diff] + 0.05 * Math.random()) / (this.level + 1));
+  if (this.xp >= this.xpMax) {
+    this.levelUp();
   }
 }
 
+Player.prototype.levelUp = function() {
+  this.level++;
+  this.xp = this.xp - this.xpMax;
+  this.xpMax = this.xpMax + this.level * 2;
+}
+
 Player.prototype.determineRecipeDifficulty = function(recipe) {
-  var diff = this.level - recipe.minLevel;
+  var diff = this.level - recipe.level;
   if (diff < 6) {
     return 3;
   }

@@ -4,8 +4,9 @@ function Inventory() {
   this.maxNumForges = 4;
 }
 
-Inventory.prototype.craft = function(recipe) {
+Inventory.prototype.craft = function(item) {
   var reqForge = null;
+  var recipe = item.Recipe;
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
 
@@ -33,12 +34,12 @@ Inventory.prototype.craft = function(recipe) {
     }
   }
 
-  var isForge = recipe.Item && recipe.Item.type && recipe.Item.type == ItemType.Forge;
+  var isForge = item.type && item.type == ItemType.Forge;
   if (isForge) {
     if (this.forges.length < this.maxNumForges) {
       // There is an open forge slot.
       // Add it to the forge array.
-      this.forges.push(recipe.Item);
+      this.forges.push(item);
 
       // In the event some forges were consumed from both the forge array and the inventory,
       // there will be open slots in the forge array even after adding the newly crafted one.
@@ -55,11 +56,11 @@ Inventory.prototype.craft = function(recipe) {
     }
   }
 
-  var isPick = recipe.Item && recipe.Item.type && recipe.Item.type == ItemType.Pick;
+  var isPick = item.type && item.type == ItemType.Pick;
   if (isPick) {
     if (!this.pick) {
       this.pick = {};
-      $.extend(true, this.pick, recipe.Item); // Deep copy pick item (as to not modify original item)
+      $.extend(true, this.pick, item); // Deep copy pick item (as to not modify original item)
       this.pick.maxDurability = this.pick.durability;
       $('#gather').prop("src", this.pick.image);
       $('#currentPick').text(this.pick.name);
@@ -69,13 +70,13 @@ Inventory.prototype.craft = function(recipe) {
   
   // Put the item into the inventory.
   // The item could be a forge if the forge array was full.
-  if (this.items[recipe.name]) {
-    this.items[recipe.name].amount += (recipe.makes || 1);
+  if (this.items[item.name]) {
+    this.items[item.name].amount += (recipe.makes || 1);
   }
   else {
-    this.items[recipe.name] = 
+    this.items[item.name] = 
     {
-      Item: recipe.Item,
+      Item: item,
       amount: (recipe.makes || 1)
     };
   }

@@ -85,24 +85,24 @@ Game.prototype.gather = function() {
 Game.prototype.craft = function(amount, itemLevel) {
   var $current = $('#recipeList li.selectedRecipe');
   if ($current.length > 0) {
-    var recipe = $current.data();
+    var item = $current.data();
     amount = parseInt(amount) || 1;
     $('#craftAmount').val(1); // Reset craft amount to 1
-    this.craftRecipe(recipe, amount, $current, amount > 1 /* isCraftingMultiple */);
+    this.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
   }
 }
 
 Game.prototype.craftAll = function() {
   var $current = $('#recipeList li.selectedRecipe');
   if ($current.length > 0) {
-    var recipe = $current.data();
-    var amount = this.player.getCraftableAmount(recipe);
+    var item = $current.data();
+    var amount = this.player.getCraftableAmount(item.Recipe);
     $('#craftAmount').val(1); // Reset craft amount to 1
-    this.craftRecipe(recipe, amount, $current, amount > 1 /* isCraftingMultiple */);
+    this.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
   }
 }
 
-Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
+Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
   if (amount == 0) {
     return;
   }
@@ -112,7 +112,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
 
   if (!isCraftingMultiple && $('#craft').val() == 'Cancel') {
     // Dequeue the crafting request
-    delete p.crafting[recipe.name];
+    delete p.crafting[item.name];
 
     // Stop the animation
     el.stop();
@@ -131,7 +131,9 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
     return;
   }
 
+
   // Confirm the necessary requirements are still met for this recipe
+  var recipe = item.Recipe;
   if (p.getCraftableAmount(recipe) == 0) {
     // Stop the animation
     el.stop();
@@ -142,7 +144,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
   }
 
   // Note that crafting of the given recipe has been requested.
-  p.crafting[recipe.name] = el;
+  p.crafting[item.name] = el;
 
   var multiplier = 0;
   if (recipe.forge) {
@@ -150,7 +152,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
     for (var i = 0; i < p.inventory.forges.length; i++) {
       var forge = p.inventory.forges[i];
       if (forge.level >= recipe.forge.level) {
-        smeltModifier = (forge.SmeltModifiers && typeof forge.SmeltModifiers[recipe.name] != "undefined" ? forge.SmeltModifiers[recipe.name] : smeltModifier);
+        smeltModifier = (forge.SmeltModifiers && typeof forge.SmeltModifiers[item.name] != "undefined" ? forge.SmeltModifiers[item.name] : smeltModifier);
         multiplier += smeltModifier;
       }
     }
@@ -176,7 +178,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
     "linear",
     function() {
       // Clicking the cancel icon removes the queued up crafting request
-      if (!p.crafting[recipe.name]) {
+      if (!p.crafting[item.name]) {
         amount = 0;
       }
       else {
@@ -202,9 +204,9 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
         }
       }
       else {
-        p.craft(recipe);
+        p.craft(item);
         g.updateUI();
-        g.craftRecipe(recipe, --count, el, isCraftingMultiple);
+        g.craftRecipe(item, --count, el, isCraftingMultiple);
 
 /* TODO:
           Can only use 4 forges at a time.
@@ -241,7 +243,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
 
       if (count == 0) {
         $(this).removeClass('animating');
-        delete p.crafting[recipe.name];
+        delete p.crafting[item.name];
 
         // Enable the Craft All button
         $('#craftAll').removeAttr('disabled');
@@ -262,7 +264,7 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
         if(p.crafting.hasOwnProperty(prop)) {
           var $queuedRecipe = p.crafting[prop];
           var $queuedCancelLink = $queuedRecipe.find('.cancel');
-          var amount = p.getCraftableAmount($queuedRecipe.data());
+          var amount = p.getCraftableAmount($queuedRecipe.data().Recipe);
           if (amount == 0) {
             // Stop the animation
             $queuedRecipe.stop();
@@ -286,27 +288,43 @@ Game.prototype.craftRecipe = function(recipe, amount, el, isCraftingMultiple) {
     });
 }
 
+Game.prototype.getPlayerLevelText = function() {
+  return 'Level ' + this.player.level;
+}
+
+Game.prototype.getPlayerExperienceText = function() {
+  return Math.round(this.player.xp) + ' / ' + this.player.xpMax;
+}
+
 Game.prototype.drawLevel = function() {
   var g = window.game;
   var p = g.player;
 
-  var maxWidth = $('#recipeLevelBarText').width();
-  $('#recipeLevelBar').width(Math.round(maxWidth * p.level / p.maxLevel));
-  $('#recipeLevelBarText').text(p.level + '/' + p.maxLevel);
+  var maxWidth = $('#experienceBarText').width();
+  $('#experienceBar').width(Math.round(maxWidth * p.xp / p.xpMax));
+
+  if (g.experienceShown) {
+    $('#experienceBarText').text(g.getPlayerExperienceText());
+  }
+  else {
+    $('#experienceBarText').text(g.getPlayerLevelText());
+  }
 }
 
 Game.prototype.drawRecipes = function() {
   var g = window.game;
   var p = g.player;
 
-  for (var prop in Recipes) {
-    if(Recipes.hasOwnProperty(prop)) {
-      var recipe = Recipes[prop];
-      if (this.player.level >= recipe.minLevel) {
+  for (var prop in Items) {
+    if (Items.hasOwnProperty(prop)) {
+      var item = Items[prop];
+      var recipe = item.Recipe;
+      if (recipe.available) {
         var amount = p.getCraftableAmount(recipe);
         var id = prop.replace(/ /g, '');
         var $row = $('#r_' + id);
         if ($row.length) {
+          // Row for recipe already exists.
           var color = g.determineRecipeColor(recipe);
 
           $('#ra_' + id).text(amount > 0 ? '[' + amount + ']' : '')
@@ -331,17 +349,19 @@ Game.prototype.drawRecipes = function() {
           }
         }
         else {
+          // Recipe was just unlocked.
+          // Add a new row for it.
           $('#recipeList').prepend(
             $('<li/>',
             {
               id: 'r_' + id,
-              data: recipe,
+              data: item,
             })
             .append(
               $('<div/>',
               {
                 id: 'rn_' + id,
-                text: recipe.name,
+                text: item.name,
                 class: 'recipeName',
               })
               .append(
@@ -356,7 +376,7 @@ Game.prototype.drawRecipes = function() {
             .click(function() { selectRecipe($(this)) })
             .dblclick(function() { g.craft($('#craftAmount').val()) })
           );
-          $('#rn_' + id).width(g.recipeWidth);
+          $('#rn_' + id).width(g.recipeWidth).hide().fadeIn();
         }
       }
     }
@@ -500,14 +520,15 @@ drawRecipeRequirements = function(el) {
   var p = g.player;
 
   var $div = $('#recipeRequirements');
-  var recipe = el.data();
-  var id = recipe.name.replace(/ /g, '')
+  var item = el.data();
+  var recipe = item.Recipe;
+  var id = item.name.replace(/ /g, '')
 
   $div.empty();
 
   $('<h1/>', {
     id: 'recipeName',
-    text: recipe.name,
+    text: item.name,
   }).appendTo($div);
 
   $('<h4/>', {
@@ -585,8 +606,8 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
 
     var $name = $('<td/>');
 
-    if (req.recipe) {
-      var reqId = req.recipe.name.replace(/ /g, '')
+    if (req.resource.Recipe) {
+      var reqId = req.resource.name.replace(/ /g, '')
       $('<a/>',
       {
         id: 'rrn_' + reqId,
@@ -597,7 +618,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         selectRecipe($('#r_' + $(this).prop('id').replace('rrn_', '')));
       }).appendTo($name);
 
-      var reqAmount = p.getCraftableAmount(req.recipe);
+      var reqAmount = p.getCraftableAmount(req.resource.Recipe);
       if (reqAmount > 0) {
         $('<span/>', 
         {
@@ -668,19 +689,18 @@ $(document).ready(function() {
 
     game.drawLevel();
     game.drawRecipes();
-    game.recipeWidth = $('#recipeList li:first').width();
-    $('#recipeScroll').resizable(
-    {
-      handles: "s",
-      minHeight: 300
-    });
+    game.recipeWidth = $('#recipeList li:first').width() - 2 /*border*/;
 
-    $('#recipeRequirementsScroll').resizable(
-    {
-      handles: "s",
-      minHeight: 200,
-      alsoResize: '#recipeRequirements'
-    });
+    $('#experienceBarText').hover(
+      function() {
+        game.experienceShown = true;
+        $(this).text(game.getPlayerExperienceText())
+      },
+      function() {
+        game.experienceShown = false;
+        $(this).text(game.getPlayerLevelText())
+      }
+    );
 
     $('#durability').hide();
     $('#gatherLink').click(function(e) { e.preventDefault(); });
@@ -706,8 +726,8 @@ $(document).keypress(function(e) {
     var $current = $('#recipeList li.selectedRecipe');
     if ($current.length > 0) {
       var g = window.game;
-      var recipe = $current.data();
-      g.craftRecipe(recipe, amount, $current, amount > 1 /* isCraftingMultiple */);
+      var item = $current.data();
+      g.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
     }
   }
 });
