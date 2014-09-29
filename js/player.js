@@ -33,7 +33,11 @@ Player.prototype.craft = function(item, amount) {
 
 Player.prototype.addXP = function(recipe) {
   var diff = this.determineRecipeDifficulty(recipe);
-  this.xp += Math.round(this.xpMax * (this.xpPercentages[diff] + 0.05 * Math.random()) / (this.level + 1));
+  var xpPercentIncrease = this.xpPercentages[diff];
+  if (xpPercentIncrease > 0) {
+    this.xp += Math.round(this.xpMax * (xpPercentIncrease + 0.05 * Math.random()) / (this.level + 1));
+  }
+  
   if (this.xp >= this.xpMax) {
     this.levelUp();
   }

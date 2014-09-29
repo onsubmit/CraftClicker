@@ -7,4 +7,5 @@ var Resources = {
   TinOre      : { dropChance: 0.1,  maxDropAmount: 1, name: "Tin Ore" },
   GoldOre     : { dropChance: 0.05, maxDropAmount: 1, name: "Gold Ore" },
   BauxiteOre  : { dropChance: 0.05, maxDropAmount: 1, name: "Bauxite Ore" },
+  LeadOre     : { dropChance: 0.05, maxDropAmount: 1, name: "Lead Ore" },
 }

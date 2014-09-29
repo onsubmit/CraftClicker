@@ -86,9 +86,15 @@ ul#recipeList li.background {
   text-shadow: 1px 1px #000;
 }
 
+div#recipeRequirementsScroll {
+  height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 div#recipeRequirements {
   color: white;
-  height: 200px;
+  height: 232px;
   padding: 8px;
   border-bottom: 2px solid #666;
 }

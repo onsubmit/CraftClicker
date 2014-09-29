@@ -98,6 +98,30 @@ Items.BronzeBar = {
   }
 }
 
+Items.BronzeRivet = {
+  name: "Bronze Rivet",
+  Recipe: {
+    craftTime: 16,
+    makes: 16,
+    Requirements:
+    [
+      { resource: Items.BronzeBar, amount: 1 },
+    ]
+  }
+}
+
+Items.SteelBar = {
+  name: "Steel Bar",
+  Recipe: {
+    craftTime: 3,
+    Requirements:
+    [
+      { resource: Items.IronBar, amount: 1 },
+      { resource: Resources.Coal, amount: 1 },
+    ]
+  }
+}
+
 Items.AluminumBar = {
   name: "Aluminum Bar",
   Recipe: {
@@ -115,11 +139,23 @@ Items.AluminumBar = {
 Items.AluminumStrips = {
   name: "Aluminum Strips",
   Recipe: {
-    craftTime: 1,
+    craftTime: 8,
     makes: 8,
     Requirements:
     [
       { resource: Items.AluminumBar, amount: 1 },
+    ]
+  }
+}
+
+Items.LeadBar = {
+  name: "Lead Bar",
+  Recipe: {
+    craftTime: 3,
+    Requirements:
+    [
+      { resource: Resources.LeadOre, amount: 3 },
+      { resource: Resources.Coal, amount: 1 },
     ]
   }
 }
@@ -204,13 +240,37 @@ Items.GoldPick = {
 improvePick(Items.GoldPick, Items.CastIronPick);
 Items.GoldPick.LootModifiers[Resources.BauxiteOre.name] = 1;
 
+Items.SteelPick = {
+  type: ItemType.Pick,
+  name: "Steel Pick",
+  image: 'images/pick-steel.png',
+  LootModifiers: {},
+  Recipe: {
+    text: "Allows for gathering Lead ore.",
+    unlockedBy: Items.GoldPick,
+    craftTime: 12,
+    Requirements:
+    [
+        { resource: Items.Stick, amount: 2 },
+        { resource: Items.SteelBar, amount: 3 },
+        { resource: Items.BronzeRivet, amount: 4 },
+        { resource: Items.AluminumStrips, amount: 8 },
+    ]
+  }
+}
+improvePick(Items.SteelPick, Items.GoldPick);
+Items.SteelPick.LootModifiers[Resources.LeadOre.name] = 1;
+
 Items.CopperBar.Recipe.unlockedBy = Items.StonePick;
 Items.IronBar.Recipe.unlockedBy = Items.StonePick;
 Items.TinBar.Recipe.unlockedBy = Items.CastIronPick;
 Items.GoldBar.Recipe.unlockedBy = Items.CastIronPick;
+Items.SteelBar.Recipe.unlockedBy = Items.GoldPick;
 Items.BronzeBar.Recipe.unlockedBy = Items.GoldPick;
+Items.BronzeRivet.Recipe.unlockedBy = Items.GoldPick;
 Items.AluminumBar.Recipe.unlockedBy = Items.GoldPick;
 Items.AluminumStrips.Recipe.unlockedBy = Items.GoldPick;
+Items.LeadBar.Recipe.unlockedBy = Items.SteelPick;
 
 Items.BasicForge = {
   type: ItemType.Forge,
@@ -255,9 +315,9 @@ Items.GreatForge = {
   name: "Great Forge",
   SmeltModifiers: {},
   Recipe: {
-    text: "Smelts Aluminum ore and Bronze bars. Smelts lesser ores 50% faster than the Sturdy Forge.",
+    text: "Smelts Aluminum ore and Bronze and Steel bars. Smelts lesser ores 50% faster than the Sturdy Forge.",
     unlockedBy: Items.CastIronPick,
-    craftTime: 20,
+    craftTime: 30,
     Requirements:
     [
       { resource: Items.IronBar, amount: 16 },
@@ -268,8 +328,32 @@ Items.GreatForge = {
   }
 }
 improveForge(Items.GreatForge, Items.SturdyForge);
+Items.GreatForge.SmeltModifiers[Items.SteelBar.name] = 1;
 Items.GreatForge.SmeltModifiers[Items.AluminumBar.name] = 1;
 Items.GreatForge.SmeltModifiers[Items.BronzeBar.name] = 1;
+
+Items.GiantForge = {
+  type: ItemType.Forge,
+  name: "Giant Forge",
+  SmeltModifiers: {},
+  Recipe: {
+    text: "Smelts Lead ore. Smelts lesser ores 50% faster than the Sturdy Forge.",
+    unlockedBy: Items.CastIronPick,
+    craftTime: 60,
+    Requirements:
+    [
+      { resource: Items.IronBar, amount: 32 },
+      { resource: Items.CopperBar, amount: 32 },
+      { resource: Items.GoldBar, amount: 16 },
+      { resource: Items.BronzeBar, amount: 8 },
+      { resource: Items.AluminumBar, amount: 8 },
+      { resource: Items.SteelBar, amount: 8 },
+      { resource: Items.GreatForge, amount: 4 }
+    ]
+  }
+}
+improveForge(Items.GiantForge, Items.GreatForge);
+Items.GreatForge.SmeltModifiers[Items.LeadBar.name] = 1;
 
 Items.CopperBar.Recipe.forge = Items.BasicForge;
 Items.IronBar.Recipe.forge = Items.BasicForge;
@@ -277,6 +361,8 @@ Items.TinBar.Recipe.forge = Items.SturdyForge;
 Items.GoldBar.Recipe.forge = Items.SturdyForge;
 Items.BronzeBar.Recipe.forge = Items.GreatForge;
 Items.AluminumBar.Recipe.forge = Items.GreatForge;
+Items.SteelBar.Recipe.forge = Items.GreatForge;
+Items.LeadBar.Recipe.forge = Items.GiantForge;
 
 for (var prop in Items) {
   if (Items.hasOwnProperty(prop)) {

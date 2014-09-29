@@ -206,6 +206,7 @@ Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
       else {
         p.craft(item);
         g.updateUI();
+        drawCurrentRecipeRequirements();
         g.craftRecipe(item, --count, el, isCraftingMultiple);
 
 /* TODO:
@@ -326,8 +327,14 @@ Game.prototype.drawRecipes = function() {
         if ($row.length) {
           // Row for recipe already exists.
           var color = g.determineRecipeColor(recipe);
+          $('#ra_' + id).text(amount > 0 ? '[' + amount + ']' : '');
 
-          $('#ra_' + id).text(amount > 0 ? '[' + amount + ']' : '')
+          // Add a tooltip that says how many of the item exists in the inventory
+          if (p.inventory.items[item.name]) {
+            var currentAmount = p.inventory.items[item.name].amount;
+            $('#r_' + id).prop('title', item.name + ' inventory: ' + currentAmount);
+          }
+
           var isAnimating = $row.hasClass('animating');
           if ($row.hasClass('selectedRecipe') || isAnimating) {
             $row.css('background-color', color);
@@ -515,6 +522,13 @@ unselectRecipe = function(el) {
   el.css('background-color', '')
 }
 
+drawCurrentRecipeRequirements = function() {
+  var $current = $('#recipeList li.selectedRecipe');
+  if ($current.length) {
+    drawRecipeRequirements($current);
+  }
+}
+
 drawRecipeRequirements = function(el) {
   var g = window.game;
   var p = g.player;
@@ -613,6 +627,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         id: 'rrn_' + reqId,
         text: req.resource.name,
         href: "#",
+        title: req.resource.name + ' inventory: ' + currentAmount
       }).click(function()
       {
         selectRecipe($('#r_' + $(this).prop('id').replace('rrn_', '')));
@@ -632,6 +647,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
       $('<span/>',
       {
         text: req.resource.name,
+        title: req.resource.name + ' inventory: ' + currentAmount
       }).appendTo($name);
     }
 
