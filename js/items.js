@@ -185,10 +185,10 @@ improvePick(Items.CastIronPick, Items.StonePick);
 Items.CastIronPick.LootModifiers[Resources.TinOre.name] = 1;
 Items.CastIronPick.LootModifiers[Resources.GoldOre.name] = 1;
 
-Items.ExtravagantGoldPick = {
+Items.GoldPick = {
   type: ItemType.Pick,
-  name: "Extravagant Gold Pick",
-  image: 'images/pick-extravagant-gold.png',
+  name: "Gold Pick",
+  image: 'images/pick-gold.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Bauxite ore.",
@@ -201,16 +201,16 @@ Items.ExtravagantGoldPick = {
     ]
   }
 }
-improvePick(Items.ExtravagantGoldPick, Items.CastIronPick);
-Items.ExtravagantGoldPick.LootModifiers[Resources.BauxiteOre.name] = 1;
+improvePick(Items.GoldPick, Items.CastIronPick);
+Items.GoldPick.LootModifiers[Resources.BauxiteOre.name] = 1;
 
 Items.CopperBar.Recipe.unlockedBy = Items.StonePick;
 Items.IronBar.Recipe.unlockedBy = Items.StonePick;
 Items.TinBar.Recipe.unlockedBy = Items.CastIronPick;
 Items.GoldBar.Recipe.unlockedBy = Items.CastIronPick;
-Items.BronzeBar.Recipe.unlockedBy = Items.ExtravagantGoldPick;
-Items.AluminumBar.Recipe.unlockedBy = Items.ExtravagantGoldPick;
-Items.AluminumStrips.Recipe.unlockedBy = Items.ExtravagantGoldPick;
+Items.BronzeBar.Recipe.unlockedBy = Items.GoldPick;
+Items.AluminumBar.Recipe.unlockedBy = Items.GoldPick;
+Items.AluminumStrips.Recipe.unlockedBy = Items.GoldPick;
 
 Items.BasicForge = {
   type: ItemType.Forge,
