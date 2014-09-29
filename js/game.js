@@ -627,29 +627,24 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         id: 'rrn_' + reqId,
         text: req.resource.name,
         href: "#",
-        title: req.resource.name + ' inventory: ' + currentAmount
       }).click(function()
       {
         selectRecipe($('#r_' + $(this).prop('id').replace('rrn_', '')));
       }).appendTo($name);
-
-      var reqAmount = p.getCraftableAmount(req.resource.Recipe);
-      if (reqAmount > 0) {
-        $('<span/>', 
-        {
-          id: 'rra_' + reqId,
-          text: '[' + reqAmount + ']',
-          class: 'amount'
-        }).appendTo($name)
-      }
     }
     else {
       $('<span/>',
       {
         text: req.resource.name,
-        title: req.resource.name + ' inventory: ' + currentAmount
       }).appendTo($name);
     }
+
+    $('<span/>', 
+    {
+      id: 'rra_' + reqId,
+      text: '(' + currentAmount + ')',
+      class: 'amount'
+    }).appendTo($name);
 
     $name.appendTo($row);
 
@@ -678,14 +673,17 @@ createTimeString = function(time) {
   ret = "";
 
   if (hrs > 0) {
-      ret += "" + hrs + " hour" + (hrs > 1 ? "s" : "") + (mins > 0 || secs > 0 ? ", " : "");
+      ret += "" + hrs + " hour" + (hrs != 1 ? "s" : "") + (mins > 0 || secs > 0 ? ", " : "");
   }
 
   if (mins > 0) {
-    ret += "" + mins + " minute" + (mins > 1 ? "s" : "") + (secs > 0 ? ", " : "");
+    ret += "" + mins + " minute" + (mins != 1 ? "s" : "") + (secs > 0 ? ", " : "");
   }
   
-  ret += "" + secs + " second" + (secs > 1 ? "s" : "");
+  if (secs > 0) {
+    ret += "" + secs + " second" + (secs != 1 ? "s" : "");
+  }
+
   return ret;
 }
 
