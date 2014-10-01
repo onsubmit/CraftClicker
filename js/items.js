@@ -23,6 +23,68 @@ improvePick = function(newPick, oldPick) {
   }
 }
 
+determineUnlocks = function(item) {
+    if (item.Recipe.unlockedBy) {
+      if (!item.Recipe.unlockedBy.unlocks) {
+        item.Recipe.unlockedBy.unlocks = [];
+      }
+
+      item.Recipe.unlockedBy.unlocks.push(item.name.replace(/ /g, ''));
+      delete item.Recipe.unlockedBy;
+    }
+}
+
+determineTotalRequirements = function(item) {
+  item.Recipe.TotalRequirements = item.Recipe.TotalRequirements || {};
+  for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+    var req = item.Recipe.Requirements[i];
+    var subItem = req.resource;
+
+    if (!subItem.Recipe) {
+      // Resources don't have recipes.
+      if (item.Recipe.TotalRequirements[subItem.name]) {
+        item.Recipe.TotalRequirements[subItem.name] += req.amount;
+      }
+      else {
+        item.Recipe.TotalRequirements[subItem.name] = req.amount;
+      }
+    }
+    else {
+      // We've already determined the total requirements of the recipe item.
+      // Let's merge them with total requirements of the parent item.
+      for (var prop in subItem.Recipe.TotalRequirements) {
+        if (subItem.Recipe.TotalRequirements.hasOwnProperty(prop)) {
+          var subReqAmount = subItem.Recipe.TotalRequirements[prop];
+          if (item.Recipe.TotalRequirements[prop]) {
+            item.Recipe.TotalRequirements[prop] += req.amount * subReqAmount;
+          }
+          else {
+            item.Recipe.TotalRequirements[prop] = req.amount * subReqAmount;
+          }
+        }
+      }
+    }
+  }
+}
+
+determineItemComplexity = function(item) {
+  item.complexity = item.complexity || 0;
+
+  // An item's complexity is simply the depth of its recipe's dependency tree.
+  // Example: 0 -- Raw resources. They don't have recipes.
+  // Example: 1 -- Recipes consisting entirely of raw resources: Basic Forge (requires only Stone)
+  // Example: 2 -- Recipes with at least one level 1 requirement: Sturdy Forge (since it requires 4 Basic Forges)
+  // Example: 3 -- Recipes with at least one level 2 requirement: Great Forge (since it requires 4 Sturdy Forges)
+  for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+    var req = item.Recipe.Requirements[i];
+    if (typeof req.resource.complexity === "undefined" && !req.resource.Recipe) {
+      req.resource.complexity = 0;
+    }
+
+    item.complexity = Math.max(item.complexity, 1 + req.resource.complexity);
+  }
+}
+
 var Items = {};
 
 Items.Stick = {
@@ -163,7 +225,7 @@ Items.LeadBar = {
 Items.WoodenPick = {
   type: ItemType.Pick,
   level: 1,
-  durability: 32,
+  durability: 64,
   name: "Wooden Pick",
   image: 'images/pick-wooden.png',
   LootModifiers: {},
@@ -367,13 +429,8 @@ Items.LeadBar.Recipe.forge = Items.GiantForge;
 for (var prop in Items) {
   if (Items.hasOwnProperty(prop)) {
     var item = Items[prop];
-    if (item.Recipe.unlockedBy) {
-      if (!item.Recipe.unlockedBy.unlocks) {
-        item.Recipe.unlockedBy.unlocks = [];
-      }
-
-      item.Recipe.unlockedBy.unlocks.push(item.name.replace(/ /g, ''));
-      delete item.Recipe.unlockedBy;
-    }
+    determineUnlocks(item);
+    determineTotalRequirements(item);
+    determineItemComplexity(item);
   }
 }

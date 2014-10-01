@@ -27,8 +27,6 @@ Player.prototype.craft = function(item, amount) {
   }
 
   this.inventory.craft(item, amount);
-
-
 }
 
 Player.prototype.addXP = function(recipe) {
@@ -37,7 +35,7 @@ Player.prototype.addXP = function(recipe) {
   if (xpPercentIncrease > 0) {
     this.xp += Math.round(this.xpMax * (xpPercentIncrease + 0.05 * Math.random()) / (this.level + 1));
   }
-  
+
   if (this.xp >= this.xpMax) {
     this.levelUp();
   }
@@ -72,4 +70,8 @@ Player.prototype.collect = function(drops) {
 
 Player.prototype.getCraftableAmount = function(recipe) {
   return this.inventory.getCraftableAmount(recipe);
+}
+
+Player.prototype.getCraftableAmountFromInventory = function(recipe) {
+  return this.inventory.getCraftableAmountFromInventory(recipe);
 }

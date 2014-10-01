@@ -102,13 +102,44 @@ Game.prototype.craftAll = function() {
   }
 }
 
-Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
-  if (amount == 0) {
+Game.prototype.craftRecipesOfComplexity = function(requiredRecipes, complexity) {
+  if (!requiredRecipes[complexity]) {
     return;
   }
 
   var g = window.game;
   var p = g.player;
+
+  var numToCraft = 0;
+  var crafted = 0;
+  for (var prop in requiredRecipes[complexity]) {
+    numToCraft++;
+    var id = prop.replace(/ /g, '');
+    var req = Items[id];
+    var amount = requiredRecipes[complexity][prop];
+    if (amount > 0) {
+      var $reqEl = $('#r_' + id);
+      if (!$reqEl.hasClass('selectedRecipe')) {
+        highlightRecipe($reqEl);
+      }
+
+      g.showCraftingAnimation(req, amount, $reqEl, amount > 0 /* isCraftingMultiple */,
+        function()
+        {
+          crafted++;
+          if (crafted == numToCraft) {
+            g.craftRecipesOfComplexity(requiredRecipes, complexity + 1);
+          }
+        });
+    }
+  }
+}
+
+Game.prototype.showCraftingAnimation = function(item, amount, el, isCraftingMultiple, doneCallback) {
+  var g = window.game;
+  var p = g.player;
+
+  console.log("Crafting " + amount + " of " + item.name);
 
   if (!isCraftingMultiple && $('#craft').val() == 'Cancel') {
     // Dequeue the crafting request
@@ -172,6 +203,7 @@ Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
 
   // Begin the crafting animation.
   var count = amount;
+  var recipe = item.Recipe;
   el.addClass('animating').width(0).animate(
     { width: g.recipeWidth },
     craftTime,
@@ -185,7 +217,7 @@ Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
         // Confirm the necessary requirements are still met for this recipe.
         // Since gathered materials could have changed during the crafting of this item,
         // recalculated the total amount that can still be crafted.
-        amount = p.getCraftableAmount(recipe);
+        amount = p.getCraftableAmountFromInventory(recipe);
       }
 
       if (amount == 0) {
@@ -207,40 +239,13 @@ Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
         p.craft(item);
         g.updateUI();
         drawCurrentRecipeRequirements();
-        g.craftRecipe(item, --count, el, isCraftingMultiple);
-
-/* TODO:
-          Can only use 4 forges at a time.
-          Crafting a forge requires 4 of the previous level + some other mats.
-          When no forges are in use and no smelting is being performed, all 4 forges will be available (checkbox checked) for smelting.
-          Unchecking an available forge means it will not be used when a smelting request is made. This will allow for smelting multiple types of ore at once.
-          Whenever a forge is in use, it is no longer available to take new smelting requests (checkbox disabled).
-
-        if (recipe.Item.slot == Slot.Forge) {
-          if (p.inventory.forges[recipe.itemLevel] == 1) {
-            $('<th/>',
-            {
-              id: 'fn_' + recipe.itemLevel,
-              text: recipe.name.replace(' Forge', '')
-            })
-            .appendTo('#forgeNames');
-            $('<td/>',
-            {
-              id: 'f_' + recipe.itemLevel
-            }).append(
-              $('<img/>',
-              {
-                id: 'fi_' + recipe.itemLevel,
-                src: 'images/forge.png'
-              })
-            )
-            .appendTo('#forgeList');
-            $('#forges').show();
-          }
+        if (--count > 0) {
+          g.showCraftingAnimation(item, count, el, isCraftingMultiple, doneCallback);
         }
-*/
+        else if (doneCallback) {
+          doneCallback();
+        }
       }
-
 
       if (count == 0) {
         $(this).removeClass('animating');
@@ -287,6 +292,16 @@ Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple) {
         }
       }
     });
+}
+
+Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple, doneCallback) {
+  var g = window.game;
+  var p = g.player;
+
+  // TODO: Once enough materials are ready for the next highest complex recipe, go ahead and craft it.
+  //       No need to wait for ALL materials to be ready before crafting it (times 4 for example).
+  var requiredRecipes = p.inventory.determineRequiredRecipes(item);
+  g.craftRecipesOfComplexity(requiredRecipes, 1);
 }
 
 Game.prototype.getPlayerLevelText = function() {
@@ -478,16 +493,7 @@ Game.prototype.r = function() {
 
 var game = new Game();
 
-selectRecipe = function(el) {
-  var $current = $('#recipeList li.selectedRecipe');
-  if ($current.length) {
-    if (!$current.hasClass('animating')) {
-      unselectRecipe($current);
-    }
-
-    $current.removeClass('selectedRecipe');
-  }
-
+highlightRecipe = function(el) {
   if (!el.hasClass('animating') ) {
     el.css('background-color', el.css('color'))
     el.css('color', '')
@@ -510,9 +516,20 @@ selectRecipe = function(el) {
     $('#craft').val('Craft');
     $('#craftAll').removeAttr('disabled');
   }
+}
 
+selectRecipe = function(el) {
+  var $current = $('#recipeList li.selectedRecipe');
+  if ($current.length) {
+    if (!$current.hasClass('animating')) {
+      unselectRecipe($current);
+    }
+
+    $current.removeClass('selectedRecipe');
+  }
+
+  highlightRecipe(el);
   el.addClass('selectedRecipe');
-
   drawRecipeRequirements(el);
 }
 

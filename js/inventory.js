@@ -100,9 +100,13 @@ Inventory.prototype.merge = function(drops) {
   }
 }
 
-Inventory.prototype.getCraftableAmount = function(recipe) {
+Inventory.prototype.getCraftableAmountFromInventory = function(recipe) {
+  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */);
+}
+
+Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
   if (recipe.forge) {
-    // Player must have an active forge capable of smelting the ore
+    // Player must have an active forge capable of smelting the ore.
     var forgeLevel = recipe.forge.level;
     if (!this.forges.some(function(f) { return f.level >= forgeLevel })) {
       return 0;
@@ -110,27 +114,41 @@ Inventory.prototype.getCraftableAmount = function(recipe) {
   }
 
   var minAmount = -1;
-  for (var i = 0; i < recipe.Requirements.length; i++) {
-    var req = recipe.Requirements[i];
-    var currentAmount = 0;
-    if (this.items[req.resource.name]) {
-      currentAmount = this.items[req.resource.name].amount;
-    }
+  if (onlyLookInInventory) {
+    for (var i = 0; i < recipe.Requirements.length; i++) {
+      var req = recipe.Requirements[i];
+      var currentAmount = 0;
+      if (this.items[req.resource.name]) {
+        currentAmount = this.items[req.resource.name].amount;
+      }
 
-    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
-    if (isForge) {
-      var forgeLevel = req.resource.level;
-      for (var j = 0; j < this.forges.length; j++) {
-        if (this.forges[j].level == forgeLevel) {
-          currentAmount++;
+      var isForge = req.resource.type && req.resource.type == ItemType.Forge;
+      if (isForge) {
+        var forgeLevel = req.resource.level;
+        for (var j = 0; j < this.forges.length; j++) {
+          if (this.forges[j].level == forgeLevel) {
+            currentAmount++;
+          }
         }
       }
-    }
 
-    var amount = Math.floor(currentAmount / req.amount);
-    minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
-    if (minAmount === 0) {
-      break;
+      var amount = Math.floor(currentAmount / req.amount);
+      minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
+      if (minAmount == 0) {
+        break;
+      }
+    }
+  }
+  else {
+    var currentResources = this.breakDownInventoryIntoResources(recipe);
+    for (var prop in currentResources) {
+      var currentAmount = currentResources[prop];
+      var requiredAmount = recipe.TotalRequirements[prop];
+      var amount = Math.floor(currentAmount / requiredAmount);
+      minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
+      if (minAmount == 0) {
+        break;
+      }
     }
   }
 
@@ -165,4 +183,118 @@ Inventory.prototype.getHighestLevelPick = function() {
   }
 
   return pick;
+}
+
+Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
+  breakDown = {} ;
+  for (var i = 0; i < recipe.Requirements.length; i++) {
+    // Break each requirement down into its component resources.
+    var req = recipe.Requirements[i];
+
+    // Get the current number of items/resource the player has in their inventory
+    var currentReqAmount = this.items[req.resource.name] ? this.items[req.resource.name].amount : 0;
+
+    // Includes forges that are in the forge array (not the inventory)
+    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
+    if (isForge) {
+      var forgeLevel = req.resource.level;
+      for (var j = 0; j < this.forges.length; j++) {
+        if (this.forges[j].level == forgeLevel) {
+          currentReqAmount++;
+        }
+      }
+    }
+
+    if (!req.resource.Recipe) {
+      // Resources don't have recipes.
+      if (!breakDown[req.resource.name]) {
+        breakDown[req.resource.name] = currentReqAmount;
+      }
+    }
+    else {
+      if (req.resource.Recipe.forge) {
+        // Player must have an active forge capable of smelting the ore.
+        var forgeLevel = req.resource.Recipe.forge.level;
+        if (!this.forges.some(function(f) { return f.level >= forgeLevel })) {
+          return 0;
+        }
+      }
+      
+      // The recipe requirement is an item.
+      // We already know the resource breakdown of this item.
+      for (var prop in req.resource.Recipe.TotalRequirements) {
+        // Example: (# of Sticks in inventory) * (# of Wood needed per Stick)
+        var potentialAmount = currentReqAmount * req.resource.Recipe.TotalRequirements[prop];
+
+        // Example: Add # of Wood in inventory
+        var currentResourceAmount = this.items[prop] ? this.items[prop].amount : 0;
+        if (!breakDown[prop]) {
+          breakDown[prop] = potentialAmount + currentResourceAmount;
+        }
+        else {
+          breakDown[prop] += potentialAmount;
+        }
+      }
+    }
+  }
+
+  return breakDown;
+}
+
+Inventory.prototype.determineRequiredRecipes = function(item, list, multiplier, isChild) {
+  list = list || {};
+  multiplier = multiplier || 1;
+
+  if (!list[item.complexity]) {
+    list[item.complexity] = {};
+  }
+  
+  if (!list[item.complexity][item.name]) {
+    list[item.complexity][item.name] = multiplier;
+  }
+  else {
+    list[item.complexity][item.name] += multiplier;
+  }
+
+  if (isChild) {
+    // Current inventory taken into consideration for child recipes.
+    var currentAmount = this.getNumberOfItem(item);
+    if (list[item.complexity][item.name] >= currentAmount) {
+      list[item.complexity][item.name] -= currentAmount;
+      if (item.Recipe.makes > 1) {
+        // Some recipes output more than one item, e.g. Aluminum Strips makes 8 of them.
+        list[item.complexity][item.name] = Math.ceil(list[item.complexity][item.name] / item.Recipe.makes);
+      }
+
+      multiplier = list[item.complexity][item.name];
+    }
+  }
+
+  for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+    var req = item.Recipe.Requirements[i];
+    if (!req.resource.Recipe) {
+      continue;
+    }
+
+    this.determineRequiredRecipes(req.resource, list, multiplier * req.amount, true /* isChild */);
+  }
+
+  return list;
+}
+
+Inventory.prototype.getNumberOfItem = function(item) {
+  var currentAmount = this.items[item.name] ? this.items[item.name].amount : 0;
+
+  // Include forges that are in the forge array (not the inventory)
+  var isForge = item.type && item.type == ItemType.Forge;
+  if (isForge) {
+    var forgeLevel = item.level;
+    for (var j = 0; j < this.forges.length; j++) {
+      if (this.forges[j].level == forgeLevel) {
+        currentAmount++;
+      }
+    }
+  }
+
+  return currentAmount;
 }
