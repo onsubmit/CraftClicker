@@ -1,7 +1,40 @@
 function Inventory() {
   this.items = {};
+  this.craftingQueue = [];
   this.forges = [];
   this.maxNumForges = 4;
+}
+
+ // recipes: in the format of the return value of determineRequiredRecipes()
+Inventory.prototype.enqueue = function(recipes) {
+  this.craftingQueue.push(recipes);
+  //this.updateReservedItems(recipes);
+}
+
+Inventory.prototype.dequeue = function() {
+  //var recipes = this.craftingQueue.shift();
+  //this.updateReservedItems(recipes, true /* isRemoval */);
+  //return recipes;
+}
+
+Inventory.prototype.updateReservedItems = function(recipes, isRemoval) {
+for (var complexity in recipes) {
+    for (var prop in recipes[complexity]) {
+      var amount = recipes[complexity][prop];
+      if (!this.reserved[prop]) {
+        // Will never happen when isRemoval == true
+        this.reserved[prop] = amount;
+      }
+      else {
+        if (isRemoval) {
+          this.reserved[prop] -= amount;
+        }
+        else {
+          this.reserved[prop] += amount;
+        }
+      }
+    }
+  }
 }
 
 Inventory.prototype.craft = function(item) {
@@ -97,6 +130,23 @@ Inventory.prototype.merge = function(drops) {
         };
       }
     }
+  }
+}
+
+Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
+  if (!list.Reserved) {
+    list.Reserved = {};
+  }
+
+  if (list.Reserved[item.name]) {
+    list.Reserved[item.name].amount += amount;
+  }
+  else {
+    list.Reserved[item.name] = 
+    {
+      Item: item,
+      amount: amount
+    };
   }
 }
 
@@ -219,7 +269,7 @@ Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
           return 0;
         }
       }
-      
+
       // The recipe requirement is an item.
       // We already know the resource breakdown of this item.
       for (var prop in req.resource.Recipe.TotalRequirements) {
@@ -241,42 +291,73 @@ Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
   return breakDown;
 }
 
-Inventory.prototype.determineRequiredRecipes = function(item, list, multiplier, isChild) {
+Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, isChild) {
   list = list || {};
   multiplier = multiplier || 1;
 
   if (!list[item.complexity]) {
     list[item.complexity] = {};
   }
-  
-  if (!list[item.complexity][item.name]) {
-    list[item.complexity][item.name] = multiplier;
-  }
-  else {
-    list[item.complexity][item.name] += multiplier;
-  }
 
+  var reservedAmount = 0;
   if (isChild) {
     // Current inventory taken into consideration for child recipes.
     var currentAmount = this.getNumberOfItem(item);
-    if (list[item.complexity][item.name] >= currentAmount) {
-      list[item.complexity][item.name] -= currentAmount;
-      if (item.Recipe.makes > 1) {
-        // Some recipes output more than one item, e.g. Aluminum Strips makes 8 of them.
-        list[item.complexity][item.name] = Math.ceil(list[item.complexity][item.name] / item.Recipe.makes);
-      }
 
-      multiplier = list[item.complexity][item.name];
+    // The player needs [multiplier] of an item.
+    // The player already has [currentAmount].
+    if (multiplier > currentAmount) {
+      // How many more of the child recipe does the player need to craft to have enough to craft the parent recipe?
+      var initialMultiplier = multiplier;
+      var difference = multiplier - currentAmount;
+      var makes = item.Recipe ? item.Recipe.makes : 1;
+      multiplier = Math.ceil(difference / makes);
+
+      // When the crafting of the child recipe is complete, the player will have ([multiplier] * [makes]) more of it.
+      var postCraftAddition = multiplier * makes;
+
+      // If this is greater than or equal to the amount required to craft the parent recipe,
+      // there's no need to reserve any of the child item from the player's inventory.
+      // Otherwise, the player needs to reserve the difference.
+      if (postCraftAddition < initialMultiplier) {
+        reservedAmount = initialMultiplier - postCraftAddition;
+      }
+    }
+    else {
+      // The player has enough in their inventory.
+      // Mark the required amount as reserved.
+      reservedAmount = multiplier;
+
+      // The player doesn't need to craft any to meet the parent recipe requirement.
+      multiplier = 0;
     }
   }
 
-  for (var i = 0; i < item.Recipe.Requirements.length; i++) {
-    var req = item.Recipe.Requirements[i];
-    if (!req.resource.Recipe) {
-      continue;
+  if (reservedAmount > 0) {
+    this.mergeIntoReserved(list, item, reservedAmount);
+  }
+
+  if (multiplier > 0) {
+    if (!list[item.complexity][item.name]) {
+      list[item.complexity][item.name] = multiplier;
+    }
+    else {
+      list[item.complexity][item.name] += multiplier;
     }
 
-    this.determineRequiredRecipes(req.resource, list, multiplier * req.amount, true /* isChild */);
+    if (!item.Recipe) {
+      // We've drilled down to a raw resource.
+      // Reserve the resources from the inventory.
+      this.mergeIntoReserved(list, item, multiplier);
+      return;
+    }
+
+    // If crafting is required the player needs to reserve more items for their inventory.
+    // Dig down into the requirements of the recipe.
+    for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+      var req = item.Recipe.Requirements[i];
+      this.determineRequiredRecipes(req.resource, multiplier * req.amount, list, true /* isChild */);
+    }
   }
 
   return list;

@@ -1,6 +1,7 @@
 function Game()
 {
   this.player = new Player();
+  //                        Grey    Green      Yellow     Orange
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
   //setInterval(this.updateUI, 2000); Might not be necessary
 }
@@ -88,7 +89,7 @@ Game.prototype.craft = function(amount, itemLevel) {
     var item = $current.data();
     amount = parseInt(amount) || 1;
     $('#craftAmount').val(1); // Reset craft amount to 1
-    this.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
+    this.craftRecipe(item, amount);
   }
 }
 
@@ -98,7 +99,7 @@ Game.prototype.craftAll = function() {
     var item = $current.data();
     var amount = this.player.getCraftableAmount(item.Recipe);
     $('#craftAmount').val(1); // Reset craft amount to 1
-    this.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
+    this.craftRecipe(item, amount);
   }
 }
 
@@ -110,28 +111,37 @@ Game.prototype.craftRecipesOfComplexity = function(requiredRecipes, complexity) 
   var g = window.game;
   var p = g.player;
 
+
   var numToCraft = 0;
-  var crafted = 0;
   for (var prop in requiredRecipes[complexity]) {
     numToCraft++;
+  }
+
+  if (numToCraft == 0) {
+    // The player already had all necessary requirements of this complexity in their effective inventory.
+    // Move it on up to the next complexity level.
+    g.craftRecipesOfComplexity(requiredRecipes, complexity + 1);
+    return;
+  }
+
+  var crafted = 0;
+  for (var prop in requiredRecipes[complexity]) {
     var id = prop.replace(/ /g, '');
     var req = Items[id];
     var amount = requiredRecipes[complexity][prop];
-    if (amount > 0) {
-      var $reqEl = $('#r_' + id);
-      if (!$reqEl.hasClass('selectedRecipe')) {
-        highlightRecipe($reqEl);
-      }
-
-      g.showCraftingAnimation(req, amount, $reqEl, amount > 0 /* isCraftingMultiple */,
-        function()
-        {
-          crafted++;
-          if (crafted == numToCraft) {
-            g.craftRecipesOfComplexity(requiredRecipes, complexity + 1);
-          }
-        });
+    var $reqEl = $('#r_' + id);
+    if (!$reqEl.hasClass('selectedRecipe')) {
+      highlightRecipe($reqEl);
     }
+
+    g.showCraftingAnimation(req, amount, $reqEl, amount > 0 /* isCraftingMultiple */,
+      function()
+      {
+        crafted++;
+        if (crafted == numToCraft) {
+          g.craftRecipesOfComplexity(requiredRecipes, complexity + 1);
+        }
+      });
   }
 }
 
@@ -175,7 +185,7 @@ Game.prototype.showCraftingAnimation = function(item, amount, el, isCraftingMult
   }
 
   // Note that crafting of the given recipe has been requested.
-  p.crafting[item.name] = el;
+  p.requestCrafting(item, amount, el);
 
   var multiplier = 0;
   if (recipe.forge) {
@@ -210,7 +220,7 @@ Game.prototype.showCraftingAnimation = function(item, amount, el, isCraftingMult
     "linear",
     function() {
       // Clicking the cancel icon removes the queued up crafting request
-      if (!p.crafting[item.name]) {
+      if (!p.getCraftingQueue(item)) {
         amount = 0;
       }
       else {
@@ -264,6 +274,8 @@ Game.prototype.showCraftingAnimation = function(item, amount, el, isCraftingMult
         }
       }
 
+      // TODO: UPDATE THIS WITH THE NEW CRAFTING QUEUE LOGIC, DOOFUS
+      /* 
       // Iterate through all other recipes queued up for crafting to confirm the necessary requirements are still met.
       // If not, cancel the crafting.
       for (var prop in p.crafting) {
@@ -291,16 +303,19 @@ Game.prototype.showCraftingAnimation = function(item, amount, el, isCraftingMult
           }
         }
       }
+      */
     });
 }
 
-Game.prototype.craftRecipe = function(item, amount, el, isCraftingMultiple, doneCallback) {
+Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
+  p.requestCrafting(item, amount);
 
   // TODO: Once enough materials are ready for the next highest complex recipe, go ahead and craft it.
   //       No need to wait for ALL materials to be ready before crafting it (times 4 for example).
-  var requiredRecipes = p.inventory.determineRequiredRecipes(item);
+  var requiredRecipes = p.inventory.determineRequiredRecipes(item, amount);
+  p.inventory.enqueue(requiredRecipes);
   g.craftRecipesOfComplexity(requiredRecipes, 1);
 }
 
@@ -758,7 +773,7 @@ $(document).keypress(function(e) {
     if ($current.length > 0) {
       var g = window.game;
       var item = $current.data();
-      g.craftRecipe(item, amount, $current, amount > 1 /* isCraftingMultiple */);
+      g.craftRecipe(item, amount);
     }
   }
 });

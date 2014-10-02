@@ -24,14 +24,14 @@ improvePick = function(newPick, oldPick) {
 }
 
 determineUnlocks = function(item) {
-    if (item.Recipe.unlockedBy) {
-      if (!item.Recipe.unlockedBy.unlocks) {
-        item.Recipe.unlockedBy.unlocks = [];
-      }
-
-      item.Recipe.unlockedBy.unlocks.push(item.name.replace(/ /g, ''));
-      delete item.Recipe.unlockedBy;
+  if (item.Recipe.unlockedBy) {
+    if (!item.Recipe.unlockedBy.unlocks) {
+      item.Recipe.unlockedBy.unlocks = [];
     }
+
+    item.Recipe.unlockedBy.unlocks.push(item.name.replace(/ /g, ''));
+    delete item.Recipe.unlockedBy;
+  }
 }
 
 determineTotalRequirements = function(item) {
@@ -82,6 +82,12 @@ determineItemComplexity = function(item) {
     }
 
     item.complexity = Math.max(item.complexity, 1 + req.resource.complexity);
+  }
+}
+
+determineMakes = function(item) {
+  if (item.Recipe && !item.Recipe.makes) {
+    item.Recipe.makes = 1;
   }
 }
 
@@ -156,6 +162,7 @@ Items.BronzeBar = {
     [
       { resource: Items.TinBar, amount: 1 },
       { resource: Items.CopperBar, amount: 1 },
+      { resource: Resources.Coal, amount: 1 },
     ]
   }
 }
@@ -432,5 +439,6 @@ for (var prop in Items) {
     determineUnlocks(item);
     determineTotalRequirements(item);
     determineItemComplexity(item);
+    determineMakes(item);
   }
 }

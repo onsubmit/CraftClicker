@@ -29,6 +29,23 @@ Player.prototype.craft = function(item, amount) {
   this.inventory.craft(item, amount);
 }
 
+Player.prototype.requestCrafting = function(item, amount, el) {
+  if (!this.crafting[item.name]) {
+    this.crafting[item.name] = { element: el, amount: amount };
+  }
+  else {
+    this.crafting[item.name].amount += amount;
+  }
+}
+
+Player.prototype.getCraftingQueue = function(item) {
+  if (this.crafting[item.name]) {
+    return this.crafting[item.name];
+  }
+
+  return null;
+}
+
 Player.prototype.addXP = function(recipe) {
   var diff = this.determineRecipeDifficulty(recipe);
   var xpPercentIncrease = this.xpPercentages[diff];
