@@ -2,7 +2,7 @@ function Player() {
   this.level = 0;
   this.maxLevel = 2;
   this.inventory = new Inventory();
-  this.crafting = {};
+  this.requiredRecipes = {};
   this.skillIncreaseChanges = [0, 0.25, 0.75, 1];
   this.xpPercentages = [0, 0.2, 0.325, 0.9];
 
@@ -26,24 +26,71 @@ Player.prototype.craft = function(item, amount) {
     delete item.unlocks;
   }
 
+  // Consume the resources from the inventory.
   this.inventory.craft(item, amount);
+
+  // Update the number of items left to craft.
+  var newAmount = this.requiredRecipes[item.complexity][item.name].amount - amount;
+  if (newAmount == 0) {
+    delete this.requiredRecipes[item.complexity][item.name];
+  }
+  else {
+    this.requiredRecipes[item.complexity][item.name].amount = newAmount;
+  }
+
+  return newAmount;
 }
 
 Player.prototype.requestCrafting = function(item, amount, el) {
-  if (!this.crafting[item.name]) {
-    this.crafting[item.name] = { element: el, amount: amount };
-  }
-  else {
-    this.crafting[item.name].amount += amount;
+  // Determine the recipes that must first be crafted, ordered by complexity.
+  var newRecipes = this.inventory.determineRequiredRecipes(item, amount);
+
+  // Mark the required resources as reserved, so that they cannot be used in the crafting of new recipes.
+  this.inventory.reserveResources(this.requiredRecipes.Reserved);
+
+  this.mergeNewRequiredReciepes(newRecipes);
+}
+
+Player.prototype.mergeNewRequiredReciepes = function(recipes) {
+  var complexity = 1;
+  while(recipes[complexity]) {
+    if (!this.requiredRecipes[complexity]) {
+      // Add new complexity.
+      this.requiredRecipes[complexity] = {};
+    }
+
+    var list = recipes[complexity];
+    for (var prop in list) {
+      if (!this.requiredRecipes[complexity][prop]) {
+        // New item to craft.
+        this.requiredRecipes[complexity][prop] = list[prop];
+
+        // Mark as dormant so the crafting will begin when it's its complexity's turn to be crafted.
+        this.requiredRecipes[complexity][prop].isDormant = true;
+      }
+      else {
+        // Item is either already crafting or is queued to be crafted soon.
+        this.requiredRecipes[complexity][prop].amount += list[prop].amount;
+      }
+    }
+
+    complexity++;
   }
 }
 
-Player.prototype.getCraftingQueue = function(item) {
-  if (this.crafting[item.name]) {
-    return this.crafting[item.name];
-  }
+Player.prototype.queueRecipes = function() {
+  var complexity = 1;
+  while(this.requiredRecipes[complexity]) {
+    var list = this.requiredRecipes[complexity];
+    for (var prop in list) {
+      var isDormant = this.queueRecipe(prop, list[prop]);
+      if (!list[prop].isDormant) {
+        list[prop].isDormant = isDormant;
+      }
+    }
 
-  return null;
+    complexity++;
+  }
 }
 
 Player.prototype.addXP = function(recipe) {

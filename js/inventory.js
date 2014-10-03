@@ -1,20 +1,8 @@
 function Inventory() {
   this.items = {};
-  this.craftingQueue = [];
+  this.reserved = {};
   this.forges = [];
   this.maxNumForges = 4;
-}
-
- // recipes: in the format of the return value of determineRequiredRecipes()
-Inventory.prototype.enqueue = function(recipes) {
-  this.craftingQueue.push(recipes);
-  //this.updateReservedItems(recipes);
-}
-
-Inventory.prototype.dequeue = function() {
-  //var recipes = this.craftingQueue.shift();
-  //this.updateReservedItems(recipes, true /* isRemoval */);
-  //return recipes;
 }
 
 Inventory.prototype.updateReservedItems = function(recipes, isRemoval) {
@@ -147,6 +135,30 @@ Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
       Item: item,
       amount: amount
     };
+  }
+}
+
+Inventory.prototype.reserveResources = function(reserved) {
+  for (var prop in reserved) {
+    if (this.reserved[prop]) {
+      this.reserved[prop].amount += reserved[prop].amount;
+    }
+    else {
+      this.reserved[prop] = 
+      {
+        Item: reserved[prop].Item,
+        amount: reserved[prop].amount
+      }
+    }
+  }
+}
+
+Inventory.prototype.releaseResources = function(reserved) {
+  for (var prop in reserved) {
+    this.reserved[prop].amount -= reserved[prop].amount;
+    if (this.reserved[prop].amount) {
+      delete this.reserved[prop];
+    }
   }
 }
 
@@ -339,10 +351,10 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
 
   if (multiplier > 0) {
     if (!list[item.complexity][item.name]) {
-      list[item.complexity][item.name] = multiplier;
+      list[item.complexity][item.name] = { item: item, amount: multiplier};
     }
     else {
-      list[item.complexity][item.name] += multiplier;
+      list[item.complexity][item.name].amount += multiplier;
     }
 
     if (!item.Recipe) {

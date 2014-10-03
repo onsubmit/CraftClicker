@@ -279,3 +279,7 @@ div#help {
   text-shadow: 1px 1px 1px #000;
   position: absolute;
 }
+
+.scrollbarPadding {
+  padding-right: 20px;
+}
