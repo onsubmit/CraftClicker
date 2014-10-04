@@ -472,7 +472,8 @@ Game.prototype.drawRecipes = function() {
 Game.prototype.drawInventory = function() {
   for (var prop in this.player.inventory.items) {
     if(this.player.inventory.items.hasOwnProperty(prop)) {
-      var amount = this.player.inventory.items[prop].amount;
+      //var amount = this.player.inventory.items[prop].amount;
+      var amount = this.player.inventory.getEffectiveNumberOfItem(prop);
       var id = prop.replace(/ /g, '')
       var value = $('#iv_' + id);
       if (value.length) {

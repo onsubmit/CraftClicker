@@ -376,7 +376,7 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
 }
 
 Inventory.prototype.getNumberOfItem = function(item) {
-  var currentAmount = this.items[item.name] ? this.items[item.name].amount : 0;
+  var currentAmount = this.getNumberOfItemFromInventory(item.name);
 
   // Include forges that are in the forge array (not the inventory)
   var isForge = item.type && item.type == ItemType.Forge;
@@ -390,4 +390,17 @@ Inventory.prototype.getNumberOfItem = function(item) {
   }
 
   return currentAmount;
+}
+
+Inventory.prototype.getNumberOfItemFromInventory = function(itemName) {
+  return this.items[itemName] ? this.items[itemName].amount : 0;
+}
+
+Inventory.prototype.getEffectiveNumberOfItem = function(itemName) {
+  var amount = this.getNumberOfItemFromInventory(itemName);
+  if (this.reserved[itemName]) {
+    amount -= this.reserved[itemName].amount;
+  }
+
+  return amount;
 }

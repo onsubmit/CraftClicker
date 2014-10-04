@@ -46,7 +46,7 @@ Player.prototype.requestCrafting = function(item, amount, el) {
   var newRecipes = this.inventory.determineRequiredRecipes(item, amount);
 
   // Mark the required resources as reserved, so that they cannot be used in the crafting of new recipes.
-  this.inventory.reserveResources(this.requiredRecipes.Reserved);
+  this.inventory.reserveResources(newRecipes.Reserved);
 
   this.mergeNewRequiredReciepes(newRecipes);
 }
