@@ -33,7 +33,18 @@ Inventory.prototype.craft = function(item) {
 
     var reqIsForge = req.resource.type && req.resource.type == ItemType.Forge;
     if (!reqIsForge) {
+      // Consume the items from the inventory.
       this.items[req.resource.name].amount -= req.amount;
+      
+      // Release the reserved items.
+      var release = {};
+      release[req.resource.name] = { amount: req.amount };
+      this.releaseResources(release);
+          
+      // Reserve the new item.
+      var reserve = {};
+      reserve[item.name] = { amount: 1 };
+      this.reserveResources(reserve);
     }
     else {
       // The requirement is a forge.
@@ -138,6 +149,7 @@ Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
   }
 }
 
+
 Inventory.prototype.reserveResources = function(reserved) {
   for (var prop in reserved) {
     if (this.reserved[prop]) {
@@ -156,17 +168,17 @@ Inventory.prototype.reserveResources = function(reserved) {
 Inventory.prototype.releaseResources = function(reserved) {
   for (var prop in reserved) {
     this.reserved[prop].amount -= reserved[prop].amount;
-    if (this.reserved[prop].amount) {
+    if (!this.reserved[prop].amount) {
       delete this.reserved[prop];
     }
   }
 }
 
-Inventory.prototype.getCraftableAmountFromInventory = function(recipe) {
-  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */);
+Inventory.prototype.getCraftableAmountFromInventory = function(recipe, reserved) {
+  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */, reserved);
 }
 
-Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
+Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory, reserved) {
   if (recipe.forge) {
     // Player must have an active forge capable of smelting the ore.
     var forgeLevel = recipe.forge.level;
@@ -182,6 +194,14 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
       var currentAmount = 0;
       if (this.items[req.resource.name]) {
         currentAmount = this.items[req.resource.name].amount;
+      }
+      
+      if (this.reserved[req.resource.name]) {
+        currentAmount -= this.reserved[req.resource.name].amount;
+      }
+      
+      if (reserved && reserved[req.resource.name]) {
+        currentAmount += reserved[req.resource.name].amount;
       }
 
       var isForge = req.resource.type && req.resource.type == ItemType.Forge;
@@ -205,6 +225,14 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
     var currentResources = this.breakDownInventoryIntoResources(recipe);
     for (var prop in currentResources) {
       var currentAmount = currentResources[prop];
+      if (this.reserved[prop]) {
+        currentAmount -= this.reserved[prop].amount;
+      }
+      
+      if (reserved && reserved[prop]) {
+        currentAmount += reserved[prop].amount;
+      }
+      
       var requiredAmount = recipe.TotalRequirements[prop];
       var amount = Math.floor(currentAmount / requiredAmount);
       minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
@@ -253,8 +281,8 @@ Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
     // Break each requirement down into its component resources.
     var req = recipe.Requirements[i];
 
-    // Get the current number of items/resource the player has in their inventory
-    var currentReqAmount = this.items[req.resource.name] ? this.items[req.resource.name].amount : 0;
+    // Get the current number of items/resource the player has in their effective inventory
+    var currentReqAmount = this.getEffectiveNumberOfItem(req.resource.name);
 
     // Includes forges that are in the forge array (not the inventory)
     var isForge = req.resource.type && req.resource.type == ItemType.Forge;
@@ -377,7 +405,7 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
 
 Inventory.prototype.getNumberOfItem = function(item) {
   var currentAmount = this.getNumberOfItemFromInventory(item.name);
-
+  
   // Include forges that are in the forge array (not the inventory)
   var isForge = item.type && item.type == ItemType.Forge;
   if (isForge) {

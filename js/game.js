@@ -106,15 +106,28 @@ Game.prototype.craftAll = function() {
 Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
-  p.requestCrafting(item, amount);
-  g.craftRecipesOfComplexity(1);
+  var reserved = p.requestCrafting(item, amount);
+  g.craftRecipesOfComplexity(1, reserved);
 }
 
-Game.prototype.craftRecipesOfComplexity = function(complexity) {
+Game.prototype.craftRecipesOfComplexity = function(complexity, reserved) {
   var g = window.game;
   var p = g.player;
 
   if (!p.requiredRecipes[complexity]) {
+    // We've just finished crafting an item of highest complexity AKA the desired item.
+    // Make sure all recipes of the highest complexity are finished crafting.
+    var done = true;
+    for (var prop in p.requiredRecipes[complexity - 1]) {
+      done = false;
+      break;
+    }
+    
+    // Release the reserved items.
+    if (done) {
+      p.inventory.releaseResources(reserved);
+    }
+    
     return;
   }
 
@@ -144,7 +157,7 @@ Game.prototype.craftRecipesOfComplexity = function(complexity) {
   if (numToCraft == 0) {
     if (itemsAtThisComplexity == 0) {
       // No items are required to be crafted at this complexity.
-      g.craftRecipesOfComplexity(complexity + 1);
+      g.craftRecipesOfComplexity(complexity + 1, reserved);
     }
     else {
       // All items of this complexity are currently crafting.
@@ -169,6 +182,8 @@ Game.prototype.craftRecipesOfComplexity = function(complexity) {
 
     // Mark the recipe as active.
     p.requiredRecipes[complexity][prop].isDormant = false;
+	
+	// Kick off the crafting animation.
     g.showCraftingAnimation(req, $reqEl,
       function()
       {
@@ -183,14 +198,17 @@ Game.prototype.craftRecipesOfComplexity = function(complexity) {
           }
 
           if (done) {
-            g.craftRecipesOfComplexity(complexity + 1);
+            var release = {};
+            release[req.name] = { amount: numToCraft };
+            g.craftRecipesOfComplexity(complexity + 1, release);
           }
         }
-      });
+      }, 
+      reserved);
   }
 }
 
-Game.prototype.showCraftingAnimation = function(item, el, doneCallback) {
+Game.prototype.showCraftingAnimation = function(item, el, doneCallback, reserved) {
   var g = window.game;
   var p = g.player;
 
@@ -222,7 +240,7 @@ Game.prototype.showCraftingAnimation = function(item, el, doneCallback) {
 
   // Confirm the necessary requirements are still met for this recipe
   var recipe = item.Recipe;
-  if (p.getCraftableAmount(recipe) == 0) {
+  if (p.getCraftableAmount(recipe, reserved) == 0) {
     // Stop the animation
     el.stop();
     
@@ -257,6 +275,11 @@ Game.prototype.showCraftingAnimation = function(item, el, doneCallback) {
 
   var id = item.name.replace(/ /g, '');
   $('#rcs_' + id).show().text('Crafting ' + amount);
+  
+  // Mark the required resources as reserved, so that they cannot be used in the crafting of new recipes.
+  if (reserved) {
+    p.inventory.reserveResources(reserved);
+  }
 
   // Begin the crafting animation.
   var recipe = item.Recipe;
@@ -274,8 +297,8 @@ Game.prototype.showCraftingAnimation = function(item, el, doneCallback) {
       else {
         // Confirm the necessary requirements are still met for this recipe.
         // Since gathered materials could have changed during the crafting of this item,
-        // recalculated the total amount that can still be crafted.
-        amount = p.getCraftableAmountFromInventory(recipe);
+        // recalculate the total amount that can still be crafted.
+        amount = p.getCraftableAmountFromInventory(recipe, reserved);
       }
 
       if (amount == 0) {
