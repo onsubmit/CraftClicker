@@ -2,7 +2,7 @@ function Player() {
   this.level = 0;
   this.maxLevel = 2;
   this.inventory = new Inventory();
-  this.requiredRecipes = {};
+  this.requiredRecipes = [];
   this.skillIncreaseChanges = [0, 0.25, 0.75, 1];
   this.xpPercentages = [0, 0.2, 0.325, 0.9];
 
@@ -11,8 +11,8 @@ function Player() {
   this.xpMax = 20;
 }
 
-Player.prototype.craft = function(item, amount) {
-  amount = amount || 1;
+Player.prototype.craft = function(requiredRecipe) {
+  var item = requiredRecipe.item;
   this.addXP(item.Recipe);
 
   if (item.unlocks) {
@@ -27,61 +27,53 @@ Player.prototype.craft = function(item, amount) {
   }
 
   // Consume the resources from the inventory.
-  this.inventory.craft(item, amount);
-  
-  // Release the items reserved to craft the new item.
-  //this.inventory.releaseResources(item.Recipe);
-  
-  // Reserve the newly crafted item.
-  //this.inventory.reserveResources({ item: item, amount: amount });
-
-  // Update the number of items left to craft.
-  var newAmount = this.requiredRecipes[item.complexity][item.name].amount - amount;
-  if (newAmount == 0) {
-    delete this.requiredRecipes[item.complexity][item.name];
-  }
-  else {
-    this.requiredRecipes[item.complexity][item.name].amount = newAmount;
-  }
-
-  return newAmount;
+  this.inventory.craft(requiredRecipe);
 }
 
 Player.prototype.requestCrafting = function(item, amount, el) {
-  // Determine the recipes that must first be crafted, ordered by complexity.
-  var newRecipes = this.inventory.determineRequiredRecipes(item, amount);
-
-  this.mergeNewRequiredRecipes(newRecipes);
+  // Build the recipe tree
+  var recipeTree = this.inventory.buildRecipeTree(item, amount);
   
-  return newRecipes.Reserved;
+  // Determine the recipes of complexity: 1
+  var newRecipes = this.determineRecipesOfComplexity(recipeTree, 1);
+  
+  // Add these recipes to the craft queue
+  this.requiredRecipes = this.requiredRecipes.concat(newRecipes);
 }
 
-Player.prototype.mergeNewRequiredRecipes = function(recipes) {
-  var complexity = 1;
-  while(recipes[complexity]) {
-    if (!this.requiredRecipes[complexity]) {
-      // Add new complexity.
-      this.requiredRecipes[complexity] = {};
-    }
-
-    var list = recipes[complexity];
-    for (var prop in list) {
-      if (!this.requiredRecipes[complexity][prop]) {
-        // New item to craft.
-        this.requiredRecipes[complexity][prop] = list[prop];
-
-        // Mark as dormant so the crafting will begin when it's its complexity's turn to be crafted.
-        this.requiredRecipes[complexity][prop].isDormant = true;
-      }
-      else {
-        // Item is either already crafting or is queued to be crafted soon.
-        this.requiredRecipes[complexity][prop].amount += list[prop].amount;
-      }
-    }
-
-    complexity++;
+Player.prototype.determineRecipesOfComplexity = function(node, complexity, recipes) {
+  recipes = recipes || [];
+  
+  if (node.item.complexity == complexity) {
+    recipes.push(node);
   }
+  
+  for (var i = 0; i < node.children.length; i++) {
+    this.determineRecipesOfComplexity(node.children[i], complexity, recipes);
+  }
+  
+  return recipes;
 }
+
+/*
+Player.prototype.mergeNewRequiredRecipes = function(node, minComplexity) {
+  var complexity = node.item.complexity;
+  var minComplexity = Math.min(minComplexity, complexity) || complexity;
+  if (!this.requiredRecipes[complexity]) {
+    // Add new complexity.
+    this.requiredRecipes[complexity] = [ node ];
+  }
+  else {
+    this.requiredRecipes[complexity].push(node);
+  }
+  
+  for (var i = 0; i < node.children.length; i++) {
+    minComplexity = this.mergeNewRequiredRecipes(node.children[i], minComplexity);
+  }
+  
+  return minComplexity;
+}
+*/
 
 Player.prototype.queueRecipes = function() {
   var complexity = 1;
@@ -137,10 +129,10 @@ Player.prototype.collect = function(drops) {
   this.inventory.merge(drops);
 }
 
-Player.prototype.getCraftableAmount = function(recipe, reserved) {
-  return this.inventory.getCraftableAmount(recipe, false, reserved);
+Player.prototype.getCraftableAmount = function(recipe) {
+  return this.inventory.getCraftableAmount(recipe, false);
 }
 
-Player.prototype.getCraftableAmountFromInventory = function(recipe, reserved) {
-  return this.inventory.getCraftableAmountFromInventory(recipe, reserved);
+Player.prototype.getCraftableAmountFromInventory = function(recipe) {
+  return this.inventory.getCraftableAmountFromInventory(recipe);
 }

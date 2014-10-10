@@ -4,6 +4,66 @@
 		"selected_items":
 		[
 			[
+				"rquire",
+				"requiredRecipes"
+			],
+			[
+				"required",
+				"requiredRecipes"
+			],
+			[
+				"dorm",
+				"isDormant"
+			],
+			[
+				"process",
+				"processCraftingQueue"
+			],
+			[
+				"getcraft",
+				"getCraftableAmountFromInventory"
+			],
+			[
+				"request",
+				"requestCrafting"
+			],
+			[
+				"Alum",
+				"AluminumStrips"
+			],
+			[
+				"Great",
+				"GreatForge"
+			],
+			[
+				"Stur",
+				"SturdyForge"
+			],
+			[
+				"ex",
+				"ExtravagantGoldPick"
+			],
+			[
+				"CastIr",
+				"CastIronPick"
+			],
+			[
+				"gather",
+				"gatherContainer"
+			],
+			[
+				"get",
+				"getCraftableAmount"
+			],
+			[
+				"Stu",
+				"SturdyForge"
+			],
+			[
+				"diff",
+				"difficultyColors"
+			],
+			[
 				"auto",
 				"autoAttackTimerId"
 			],
@@ -72,26 +132,10 @@
 	"buffers":
 	[
 		{
-			"file": "index.html",
+			"file": "js/player.js",
 			"settings":
 			{
-				"buffer_size": 1567,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/game.js",
-			"settings":
-			{
-				"buffer_size": 12815,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "css/styles.css",
-			"settings":
-			{
-				"buffer_size": 1892,
+				"buffer_size": 3788,
 				"line_ending": "Windows"
 			}
 		},
@@ -99,15 +143,25 @@
 			"file": "js/inventory.js",
 			"settings":
 			{
-				"buffer_size": 1705,
+				"buffer_size": 12429,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "js/recipes.js",
+			"contents": "Searching 11 files for \"mergeIntoReserved\"\n\nC:\\Users\\Andy\\Documents\\Documents\\web pages\\incremental\\CraftClicker\\js\\inventory.js:\n  122  }\n  123  \n  124: Inventory.prototype.mergeIntoReserved = function(list, item, amount) {\n  125    if (!list.Reserved) {\n  126      list.Reserved = {};\n  ...\n  347  \n  348    if (reservedAmount > 0) {\n  349:     this.mergeIntoReserved(list, item, reservedAmount);\n  350    }\n  351  \n  ...\n  361        // We've drilled down to a raw resource.\n  362        // Reserve the resources from the inventory.\n  363:       this.mergeIntoReserved(list, item, multiplier);\n  364        return;\n  365      }\n\n3 matches in 1 file\n\n\nSearching 11 files for \"reserveResources\"\n\nC:\\Users\\Andy\\Documents\\Documents\\web pages\\incremental\\CraftClicker\\js\\inventory.js:\n  139  }\n  140  \n  141: Inventory.prototype.reserveResources = function(reserved) {\n  142    for (var prop in reserved) {\n  143      if (this.reserved[prop]) {\n\nC:\\Users\\Andy\\Documents\\Documents\\web pages\\incremental\\CraftClicker\\js\\player.js:\n   47  \n   48    // Mark the required resources as reserved, so that they cannot be used in the crafting of new recipes.\n   49:   this.inventory.reserveResources(this.requiredRecipes.Reserved);\n   50  \n   51    this.mergeNewRequiredReciepes(newRecipes);\n\n2 matches across 2 files\n\n\nSearching 11 files for \"releaseResources\"\n\nC:\\Users\\Andy\\Documents\\Documents\\web pages\\incremental\\CraftClicker\\js\\inventory.js:\n  154  }\n  155  \n  156: Inventory.prototype.releaseResources = function(reserved) {\n  157    for (var prop in reserved) {\n  158      this.reserved[prop].amount -= reserved[prop].amount;\n\n1 match in 1 file\n",
 			"settings":
 			{
-				"buffer_size": 1331,
+				"buffer_size": 1643,
+				"line_ending": "Windows",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "js/game.js",
+			"settings":
+			{
+				"buffer_size": 22562,
 				"line_ending": "Windows"
 			}
 		},
@@ -115,15 +169,7 @@
 			"file": "js/items.js",
 			"settings":
 			{
-				"buffer_size": 318,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/forge.js",
-			"settings":
-			{
-				"buffer_size": 38,
+				"buffer_size": 11631,
 				"line_ending": "Windows"
 			}
 		},
@@ -131,18 +177,18 @@
 			"file": "js/resources.js",
 			"settings":
 			{
-				"buffer_size": 514,
+				"buffer_size": 678,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "js/player.js",
+			"file": "css/styles.css",
 			"settings":
 			{
-				"buffer_size": 614,
+				"buffer_size": 4097,
 				"line_ending": "Windows"
 			}
-		},
+		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -155,7 +201,7 @@
 	},
 	"console":
 	{
-		"height": 0.0
+		"height": 125.0
 	},
 	"distraction_free":
 	{
@@ -168,15 +214,19 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/recipes.js",
-		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/player.js",
-		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/inventory.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/resources.js",
-		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/equipment.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/index.html",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/items.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/game.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/css/styles.css",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/inventory.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/player.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/recipes.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/CraftClicker.sublime-workspace",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/equipment.js",
+		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/forge.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/item.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/items/wood.js",
-		"/C/Users/Andy/Documents/Documents/web pages/incremental/CraftClicker/js/items.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/entity.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/equipment.js",
 		"/C/Users/Andy/Documents/Documents/web pages/incremental/RPGClicker/js/enemy.js",
@@ -220,131 +270,134 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"craftall",
-			"width:",
-			"260",
-			"245",
-			"width",
-			"width:",
-			"width :",
-			"width(",
-			".width(",
-			"width(",
-			"fullwidth",
-			".items",
-			"amount",
-			"missing",
-			"slot",
-			"Slot.Forge",
-			"selectRecipe",
-			"var game = new Game();\n",
-			"unhigh",
-			"un",
-			"unhighlightRecipe",
+			"drawinvent",
+			"releaseResources",
+			"reserveResources",
+			"mergeIntoReserved",
+			"drawinve",
+			"container",
+			"overflow",
+			"rcs",
+			"rcs_",
+			"dormant",
+			".crafting",
+			"isCraftingMultiple",
+			"craftingQueue",
+			"getcraftingqueue",
+			"craftRecipesOfComplexity",
+			"mergeIntoReserved",
+			"makes",
+			"merge",
+			"animation",
+			"mergeIntoReserved",
+			"mergeIntoReserve",
+			"craftRecipesOfComplexity",
+			"determineRequiredRecipes",
+			"  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\ndetermineRequiredRecipes",
+			"  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\ndetermineRequiredRecipes",
+			"  if (!list[item.complexity]) {\n  if (!list[item.complexity]) {\ndetermineRequiredRecipes",
+			"  if (!list[item.complexity]) {\ndetermineRequiredRecipes",
+			"breakDownInventoryIntoResources",
+			"craftRecipesOfComplexity",
+			"craftrecipe",
+			".crafting",
+			"determineRequiredRecipes",
+			"craftRecipe(",
+			"determineRequiredRecipes",
+			"craftRecipesOfComplexity",
+			"getcraftable",
+			"unlocks",
+			"getCraftableAmount(",
+			"breakDownInventoryIntoResources",
+			"drawrecipes",
+			"height",
+			"recipeScroll",
+			"recipeRequirementsScroll",
+			"forge:",
+			"BronzeBar",
+			"extrav",
+			"help",
+			"recipescroll",
+			"scroll",
+			".craft(",
+			"craftRecipe",
+			"recipes",
+			".recipe",
+			"data().recipe",
+			".data()",
+			"drawrecipereq",
 			"drawRecipeRequirements",
-			"h3",
-			"unhigh",
-			"unselectRecipe",
-			"highlightrecipe",
-			"row",
-			"selectedRecipe",
-			"Equipment",
-			"Items",
-			"id: i++, ",
-			";\n",
-			"maxXP",
-			"maxxp",
-			"1.1 *",
-			"dropLoot",
-			"loot",
-			"setEnemyLevel",
-			"enemylevel",
-			"enemyLevelContainer",
-			"lootenemy",
-			"loot",
-			"quality",
-			"getDropQuality",
-			"lootEnemy",
-			"wolfram",
-			"hasextraarmor",
-			"dropLoot",
-			"lootEnemy",
-			"hpkill",
-			"hp5",
-			"statshp5",
-			"hp5",
-			"hp/5",
-			"hp5",
-			"baseHP5",
-			"step",
-			"MainHand",
-			"compare",
-			"getInventoryTooltipStatsRow",
-			"getStatsRow",
-			"getStatsRow(",
-			".tooltip",
-			"heal",
-			"baseHPKill",
-			"mpk",
-			"hpk",
-			"mpki",
-			"mp5",
-			"baseHPKill",
-			"mp5",
-			"regen",
-			"1px",
-			"stats",
-			"1px",
-			"1px'",
-			"1px",
-			"getStatsRow(",
-			"Equipment.getTooltip(",
-			"getTooltipStatsTable",
-			"getStatsRow(",
-			"getStatsRow",
-			"getTooltipStatsTable(",
-			"geticon(",
-			"getTooltip",
-			".remove",
-			"inventory.remove",
-			"geticon",
-			"itemininventory",
-			"equipItemFromInventory",
-			"equipItem",
-			"getTooltip(",
-			"getTooltip",
-			"itemInInventory",
-			"getIcon",
-			"levelUp",
-			"levelup",
-			"hasExtraArmor",
-			"slot.back",
-			"neck",
-			"slot.neck",
-			"  background-color: #666;\n  background-color: #666;\ntable",
-			"table",
-			"case slot",
-			"case quality",
-			"this.player.inventory",
-			"inventory",
-			"gold",
-			"30",
-			"updateEnemyCombatText",
-			"console.log",
-			"updateEnemyCombatText",
-			"border",
-			"droploot",
-			"dropLoot",
-			"2px",
-			"this.level          = 1;",
-			"Brute",
-			"playerHealthText",
-			"jquery",
-			"generateRandomItem",
-			"AttributeBits",
-			"generateRandomItem",
-			"generateRandomArmor",
-			"tab"
+			"drawlevel",
+			"recipeLevelBarText",
+			"recipeLevel",
+			"recipeLevelBar",
+			"recipelevel",
+			"recipeLevelBarText",
+			"recipeLevelBar",
+			"recipeLevel",
+			"recipeWidth",
+			"removes",
+			"recipes",
+			"bronzebar",
+			"goldbar",
+			"unlock",
+			"unlocked",
+			"minlevel",
+			".slot",
+			"pick-disabled",
+			".image",
+			"#gather",
+			"items",
+			"goldbar",
+			"improve",
+			".pick",
+			"equipment",
+			"slot",
+			"slot.forge",
+			".forge",
+			"equipment.items",
+			"items",
+			"slot.forge",
+			"slot.crafting",
+			"recipeRequirementList",
+			"a:",
+			"']'",
+			" :",
+			"'Cancel'",
+			"sorted",
+			"multiple",
+			"craftingall",
+			"craft",
+			".some",
+			".empty",
+			"recipeRequirements",
+			"hasScrollBar",
+			"$('#craft')",
+			"craft(",
+			"craft",
+			"disabled",
+			"removeattr",
+			"disabled",
+			"drawrecipes",
+			"drawrecipelist",
+			"getCraftableAmount",
+			"260",
+			"smeltmodifier",
+			"lootmodifier",
+			".forges",
+			"forges",
+			"fists",
+			".level",
+			"getCraftableAmount",
+			"forge",
+			"requiresforge",
+			"forgelevel",
+			"craftrecipe",
+			"craft",
+			"text-align",
+			"animating",
+			"drawrecipes",
+			"removeclass"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -352,6 +405,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"data().Recipe",
 			"",
 			"baseHP5Pct",
 			"this.name = \"Brute\"",
@@ -375,49 +429,51 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "index.html",
+					"file": "js/player.js",
 					"settings":
 					{
-						"buffer_size": 1567,
+						"buffer_size": 3788,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								808,
-								818
+								1067,
+								1067
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage"
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 82.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "js/game.js",
+					"file": "js/inventory.js",
 					"settings":
 					{
-						"buffer_size": 12815,
+						"buffer_size": 12429,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1621,
-								1621
+								1673,
+								1673
 							]
 						],
 						"settings":
@@ -427,79 +483,122 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 438.0,
+						"translation.y": 761.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "css/styles.css",
 					"settings":
 					{
-						"buffer_size": 1892,
+						"buffer_size": 1643,
 						"regions":
 						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										174,
+										191
+									],
+									[
+										352,
+										369
+									],
+									[
+										554,
+										571
+									],
+									[
+										827,
+										843
+									],
+									[
+										1172,
+										1188
+									],
+									[
+										1482,
+										1498
+									]
+								],
+								"scope": ""
+							}
 						},
 						"selection":
 						[
 							[
-								1125,
-								1125
+								1309,
+								1309
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CSS/CSS.tmLanguage"
+							"detect_indentation": false,
+							"output_tag": 3,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 618.0,
+						"translation.y": 630.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "js/inventory.js",
+					"file": "js/game.js",
 					"settings":
 					{
-						"buffer_size": 1705,
+						"buffer_size": 22562,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								372,
-								372
+								11246,
+								11246
 							]
 						],
 						"settings":
 						{
+							"rulers":
+							[
+								120
+							],
 							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"translate_tabs_to_spaces": true,
+							"word_wrap": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 5490.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "js/recipes.js",
+					"file": "js/items.js",
 					"settings":
 					{
-						"buffer_size": 1331,
+						"buffer_size": 11631,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								604,
-								604
+								4357,
+								4357
 							]
 						],
 						"settings":
@@ -509,25 +608,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 405.0,
+						"translation.y": 4261.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 5,
-					"file": "js/items.js",
+					"file": "js/resources.js",
 					"settings":
 					{
-						"buffer_size": 318,
+						"buffer_size": 678,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								307,
-								307
+								0,
+								0
 							]
 						],
 						"settings":
@@ -542,108 +641,28 @@
 				},
 				{
 					"buffer": 6,
-					"file": "js/forge.js",
+					"file": "css/styles.css",
 					"settings":
 					{
-						"buffer_size": 38,
+						"buffer_size": 4097,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								38,
-								38
+								4094,
+								4094
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "js/resources.js",
-					"settings":
-					{
-						"buffer_size": 514,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								344,
-								344
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "js/player.js",
-					"settings":
-					{
-						"buffer_size": 614,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								210,
-								210
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"syntax": "Packages/CSS/CSS.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "js/equipment.js",
-					"settings":
-					{
-						"buffer_size": 486,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								278,
-								278
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 3738.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -711,6 +730,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 217.0,
+	"side_bar_width": 161.0,
 	"status_bar_visible": true
 }

@@ -5,46 +5,36 @@ function Inventory() {
   this.maxNumForges = 4;
 }
 
-Inventory.prototype.updateReservedItems = function(recipes, isRemoval) {
-for (var complexity in recipes) {
-    for (var prop in recipes[complexity]) {
-      var amount = recipes[complexity][prop];
-      if (!this.reserved[prop]) {
-        // Will never happen when isRemoval == true
-        this.reserved[prop] = amount;
-      }
-      else {
-        if (isRemoval) {
-          this.reserved[prop] -= amount;
-        }
-        else {
-          this.reserved[prop] += amount;
-        }
-      }
-    }
-  }
-}
-
-Inventory.prototype.craft = function(item) {
+Inventory.prototype.craft = function(requiredRecipe) {
   var reqForge = null;
+  var item = requiredRecipe.item;
   var recipe = item.Recipe;
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var req = recipe.Requirements[i];
-
+    
+    // Consume the items from the reserve.
+    requiredRecipe.reserved[req.resource.name] -= req.amount;
+    
+    var reqIsForge = req.resource.type && req.resource.type == ItemType.Forge;
+    if (reqIsForge) {
+      // The requirement is a forge.
+      // Consume any forges from the forge array that were reserved.
+      reqForge = req.resource;
+      var numForgesConsumed = 0;
+      for (var j = 0; j < this.forges.length && numForgesConsumed < this.maxNumForges; j++) {
+        var forge = this.forges[j];
+        if (forge.level == reqForge.level && forge.reserved) {
+          this.forges.splice(j--, 1);
+          numForgesConsumed++;
+        }
+      }
+    }
+    
+    /*
     var reqIsForge = req.resource.type && req.resource.type == ItemType.Forge;
     if (!reqIsForge) {
-      // Consume the items from the inventory.
-      this.items[req.resource.name].amount -= req.amount;
-      
-      // Release the reserved items.
-      var release = {};
-      release[req.resource.name] = { amount: req.amount };
-      this.releaseResources(release);
-          
-      // Reserve the new item.
-      var reserve = {};
-      reserve[item.name] = { amount: 1 };
-      this.reserveResources(reserve);
+    
+
     }
     else {
       // The requirement is a forge.
@@ -64,42 +54,71 @@ Inventory.prototype.craft = function(item) {
         this.items[req.resource.name].amount -= remainingToConsume;
       }
     }
+  */
   }
 
-  var isForge = item.type && item.type == ItemType.Forge;
-  if (isForge) {
-    if (this.forges.length < this.maxNumForges) {
-      // There is an open forge slot.
-      // Add it to the forge array.
-      this.forges.push(item);
-
-      // In the event some forges were consumed from both the forge array and the inventory,
-      // there will be open slots in the forge array even after adding the newly crafted one.
-      // Move as many forges from the inventory to the forge array as we can. 
-      if (reqForge && this.forges.length < this.maxNumForges) {
-        while (this.items[reqForge.name] && this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
-          this.items[reqForge.name].amount -= 1;
-          this.forges.push(reqForge);
-        }
-      }
-
-      this.drawForges();
-      return;
+  
+  var makes = recipe.makes || 1;
+  requiredRecipe.amount -= 1;
+  if (requiredRecipe.parent) {
+    // Move the newly crafted item into the reserve of its parent.
+    if (!requiredRecipe.parent.reserved[item.name]) {
+      requiredRecipe.parent.reserved[item.name] = makes;
+    }
+    else {
+      requiredRecipe.parent.reserved[item.name] += makes;
     }
   }
+  else {
+    var isForge = item.type && item.type == ItemType.Forge;
+    if (isForge) {
+      if (this.forges.length < this.maxNumForges) {
+        // There is an open forge slot.
+        // Add it to the forge array.
+        this.forges.push(item);
 
-  var isPick = item.type && item.type == ItemType.Pick;
-  if (isPick) {
-    if (!this.pick) {
-      this.pick = {};
-      $.extend(true, this.pick, item); // Deep copy pick item (as to not modify original item)
-      this.pick.maxDurability = this.pick.durability;
-      $('#gather').prop("src", this.pick.image);
-      $('#currentPick').text(this.pick.name);
-      return;
+        // In the event some forges were consumed from both the forge array and the inventory,
+        // there will be open slots in the forge array even after adding the newly crafted one.
+        // Move as many forges from the inventory to the forge array as we can. 
+        if (reqForge && this.forges.length < this.maxNumForges) {
+          while (this.items[reqForge.name] && this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
+            this.items[reqForge.name].amount -= 1;
+            this.forges.push(reqForge);
+          }
+        }
+
+        this.drawForges();
+        return;
+      }
+    }
+  
+    var isPick = item.type && item.type == ItemType.Pick;
+    if (isPick) {
+      if (!this.pick) {
+        this.pick = {};
+        $.extend(true, this.pick, item); // Deep copy pick item (as to not modify original item)
+        this.pick.maxDurability = this.pick.durability;
+        $('#gather').prop("src", this.pick.image);
+        $('#currentPick').text(this.pick.name);
+        return;
+      }
+    }
+  
+    // Put the item into the inventory.
+    // The item could be a forge if the forge array was full.
+    if (this.items[item.name]) {
+      this.items[item.name].amount += makes;
+    }
+    else {
+      this.items[item.name] = 
+      {
+        Item: item,
+        amount:makes
+      };
     }
   }
   
+  /*
   // Put the item into the inventory.
   // The item could be a forge if the forge array was full.
   if (this.items[item.name]) {
@@ -112,6 +131,7 @@ Inventory.prototype.craft = function(item) {
       amount: (recipe.makes || 1)
     };
   }
+  */
 }
 
 Inventory.prototype.merge = function(drops) {
@@ -149,36 +169,11 @@ Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
   }
 }
 
-
-Inventory.prototype.reserveResources = function(reserved) {
-  for (var prop in reserved) {
-    if (this.reserved[prop]) {
-      this.reserved[prop].amount += reserved[prop].amount;
-    }
-    else {
-      this.reserved[prop] = 
-      {
-        Item: reserved[prop].Item,
-        amount: reserved[prop].amount
-      }
-    }
-  }
+Inventory.prototype.getCraftableAmountFromInventory = function(recipe) {
+  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */);
 }
 
-Inventory.prototype.releaseResources = function(reserved) {
-  for (var prop in reserved) {
-    this.reserved[prop].amount -= reserved[prop].amount;
-    if (!this.reserved[prop].amount) {
-      delete this.reserved[prop];
-    }
-  }
-}
-
-Inventory.prototype.getCraftableAmountFromInventory = function(recipe, reserved) {
-  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */, reserved);
-}
-
-Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory, reserved) {
+Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
   if (recipe.forge) {
     // Player must have an active forge capable of smelting the ore.
     var forgeLevel = recipe.forge.level;
@@ -195,20 +190,12 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory, r
       if (this.items[req.resource.name]) {
         currentAmount = this.items[req.resource.name].amount;
       }
-      
-      if (this.reserved[req.resource.name]) {
-        currentAmount -= this.reserved[req.resource.name].amount;
-      }
-      
-      if (reserved && reserved[req.resource.name]) {
-        currentAmount += reserved[req.resource.name].amount;
-      }
 
       var isForge = req.resource.type && req.resource.type == ItemType.Forge;
       if (isForge) {
         var forgeLevel = req.resource.level;
         for (var j = 0; j < this.forges.length; j++) {
-          if (this.forges[j].level == forgeLevel) {
+          if (this.forges[j].level == forgeLevel && !forge.reserved) {
             currentAmount++;
           }
         }
@@ -224,15 +211,7 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory, r
   else {
     var currentResources = this.breakDownInventoryIntoResources(recipe);
     for (var prop in currentResources) {
-      var currentAmount = currentResources[prop];
-      if (this.reserved[prop]) {
-        currentAmount -= this.reserved[prop].amount;
-      }
-      
-      if (reserved && reserved[prop]) {
-        currentAmount += reserved[prop].amount;
-      }
-      
+      var currentAmount = currentResources[prop];    
       var requiredAmount = recipe.TotalRequirements[prop];
       var amount = Math.floor(currentAmount / requiredAmount);
       minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
@@ -281,8 +260,8 @@ Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
     // Break each requirement down into its component resources.
     var req = recipe.Requirements[i];
 
-    // Get the current number of items/resource the player has in their effective inventory
-    var currentReqAmount = this.getEffectiveNumberOfItem(req.resource.name);
+    // Get the current number of items/resource the player has in their inventory
+    var currentReqAmount = this.getNumberOfItem(req.resource);
 
     // Includes forges that are in the forge array (not the inventory)
     var isForge = req.resource.type && req.resource.type == ItemType.Forge;
@@ -331,7 +310,119 @@ Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
   return breakDown;
 }
 
-Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, isChild) {
+Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
+  multiplier = multiplier || 1;
+  
+  var node = {
+    item: item,
+    amount: multiplier,
+    reserved: {},
+    children: []
+  };
+  
+  if (parent) {
+    node.parent = parent;
+  }
+  
+  if (item.Recipe) {
+    // If crafting is required the player needs to reserve items from their inventory.
+    // Dig down into the requirements of the recipe.
+    for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+      var req = item.Recipe.Requirements[i];
+      var res = req.resource;
+      var needs = multiplier * req.amount;
+      var currentAmount = 0;
+      var reservedAmount = 0;
+      
+      if (!res.Recipe) {
+        // Requirement is a raw resource. Reserve the necessary amount.
+        reservedAmount = needs;
+      }
+      else {
+        // Requirement has its own recipe.
+        // Let's determine how many must be crafted.
+        currentAmount = this.getNumberOfItem(res);
+
+        // The player needs [multiplier * req.amount] of an item.
+        // The player already has [currentAmount].
+        if (needs > currentAmount) {
+          // How many more of the child recipe does the player need to craft to have enough to craft the parent recipe?
+          var initialNeed = needs;
+          var difference = needs - currentAmount;
+          var makes = res.Recipe ? res.Recipe.makes : 1;
+          needs = Math.ceil(difference / makes);
+
+          // When the crafting of the child recipe is complete, the player will have ([needs] * [makes]) more of it.
+          var postCraftAddition = needs * makes;
+
+          // If this is greater than or equal to the amount required to craft the parent recipe,
+          // there's no need to reserve any of the child item from the player's inventory.
+          // Otherwise, the player needs to reserve the difference.
+          if (postCraftAddition < initialNeed) {
+            reservedAmount = initialNeed - postCraftAddition;
+          }
+        }
+        else {
+          // The player has enough in their inventory.
+          // Mark the required amount as reserved.
+          reservedAmount = multiplier;
+
+          // The player doesn't need to craft any to meet the parent recipe requirement.
+          needs = 0;
+        }
+        
+        if (needs > 0) {
+          var child = this.buildRecipeTree(res, needs, node);
+          node.children.push(child);
+        }
+      }
+      
+      if (reservedAmount > 0) {
+        // Reserve the resources to craft this item.
+        node.reserved[res.name] = reservedAmount;
+        
+        var isForge = res.type && res.type == ItemType.Forge;
+        if (isForge)
+        {
+          // The requirement is a forge.
+          // Reserve forges from the forge array before any from the inventory.
+          reqForge = req.resource;
+          var numForgesReserved = 0;
+          
+          for (var j = 0; j < this.forges.length && numForgesReserved < this.maxNumForges; j++) {
+            var forge = this.forges[j];
+            if (forge.level == reqForge.level && !forge.reserved) {
+              forge.reserved = true;
+              numForgesReserved++;
+            }
+          }
+
+          // Reserve remaining forges from the inventory.
+          if (numForgesReserved < currentAmount) {
+            var remainingToConsume = currentAmount - numForgesReserved;
+            this.items[res.name].amount -= remainingToConsume;
+          }
+        }
+        else {
+          // Remove them from the player's inventory.
+          this.items[res.name].amount -= reservedAmount;
+          
+          // Keep track of all reserved resources.
+          if (!this.reserved[res.name]) {
+            this.reserved[res.name] = reservedAmount;
+          }
+          else {
+            this.reserved[res.name] += reservedAmount;
+          }
+        }
+      }
+    }
+  }
+  
+  return node;
+}
+
+Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, parent) {
   list = list || {};
   multiplier = multiplier || 1;
 
@@ -340,7 +431,7 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
   }
 
   var reservedAmount = 0;
-  if (isChild) {
+  if (parent) {
     // Current inventory taken into consideration for child recipes.
     var currentAmount = this.getNumberOfItem(item);
 
@@ -373,13 +464,15 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
     }
   }
 
+  /*
   if (reservedAmount > 0) {
     this.mergeIntoReserved(list, item, reservedAmount);
   }
+  */
 
   if (multiplier > 0) {
     if (!list[item.complexity][item.name]) {
-      list[item.complexity][item.name] = { item: item, amount: multiplier};
+      list[item.complexity][item.name] = { item: item, amount: multiplier };
     }
     else {
       list[item.complexity][item.name].amount += multiplier;
@@ -389,6 +482,7 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
       // We've drilled down to a raw resource.
       // Reserve the resources from the inventory.
       this.mergeIntoReserved(list, item, multiplier);
+      
       return;
     }
 
@@ -396,7 +490,23 @@ Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, 
     // Dig down into the requirements of the recipe.
     for (var i = 0; i < item.Recipe.Requirements.length; i++) {
       var req = item.Recipe.Requirements[i];
-      this.determineRequiredRecipes(req.resource, multiplier * req.amount, list, true /* isChild */);
+      this.determineRequiredRecipes(req.resource, multiplier * req.amount, list, item);
+    }
+  }
+  
+  if (reservedAmount > 0) {
+    // Move the reserved items from the inventory into the reserve.
+    this.items[item.name] -= reservedAmount;
+
+    if (!list[parent.complexity][parent.name].reserved) {
+      list[parent.complexity][parent.name].reserved = {};
+      list[parent.complexity][parent.name].reserved[item.name] = reservedAmount;
+    }
+    else if (!list[parent.complexity][parent.name].reserved[item.name]) {
+      list[parent.complexity][parent.name].reserved[item.name] = reservedAmount;
+    }
+    else {
+      list[parent.complexity][parent.name].reserved[item.name] += reservedAmount;
     }
   }
 
@@ -411,7 +521,7 @@ Inventory.prototype.getNumberOfItem = function(item) {
   if (isForge) {
     var forgeLevel = item.level;
     for (var j = 0; j < this.forges.length; j++) {
-      if (this.forges[j].level == forgeLevel) {
+      if (this.forges[j].level == forgeLevel && !this.forges[j].reserved) {
         currentAmount++;
       }
     }
@@ -422,13 +532,4 @@ Inventory.prototype.getNumberOfItem = function(item) {
 
 Inventory.prototype.getNumberOfItemFromInventory = function(itemName) {
   return this.items[itemName] ? this.items[itemName].amount : 0;
-}
-
-Inventory.prototype.getEffectiveNumberOfItem = function(itemName) {
-  var amount = this.getNumberOfItemFromInventory(itemName);
-  if (this.reserved[itemName]) {
-    amount -= this.reserved[itemName].amount;
-  }
-
-  return amount;
 }

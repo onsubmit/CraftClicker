@@ -1,13 +1,11 @@
-Request the crafting of a recipe.
-Ensure the player has the effective inventory to craft the recipe.
-Reserve the required resources for the crafting of the recipe.
-Start the crafting animation.
-At the end of the crafting animation:
-  Ensure the the player still has the effective inventory (minus what was reserved specifically for this recipe) to craft the recipe.
-  If so, release the reserved resources and remove them from the inventory.
-  
-  
-Rethinking the releasing the reserved resources.
+Update inventory.buildRecipeTree()
+Update code near "// Remove them from the player's inventory." to support reserving a forge
 
-Whenever ANY recipe gets crafted, the resources that were previously reserved need to be released.
-However, the new item that was just crafted needs to be marked as reserved!
+If forge is reserved, can't be used for crafting. Done
+Crafting of forge cancelled, release reserved forges
+At end of crafting Sturdy Forge, consume Basic Forge
+
+TODO: Only update UI every x seconds instead of at every gather
+TODO: "Waiting" text doesn't work anymore. done
+
+TODO: Figure out cancelling
