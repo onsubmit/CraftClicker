@@ -107,6 +107,10 @@ Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
   
+  if (p.getCraftableAmount(item.Recipe) < amount) {
+    return;
+  }
+  
   if (item.Recipe.crafting && item.Recipe.craftQueue && item.Recipe.craftQueue.length > 0) {
     // This recipe is already crafting at least one node from a recipe tree.
     while (item.Recipe.craftQueue.length > 0) {
@@ -125,7 +129,7 @@ Game.prototype.craftRecipe = function(item, amount) {
   }
   
   p.requestCrafting(item, amount);
-  g.updateUI();
+  //g.updateUI();
   g.craftRecipeTree();
 }
 
@@ -172,11 +176,11 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
       
       // Release the remaining forges into the inventory.
       if (numForgesReleased < amount) {
-        p.inventory.mergeItem(prop, amount - numForgesReleased);
+        p.inventory.mergeItemByName(prop, amount - numForgesReleased);
       }
     }
     else {
-      p.inventory.mergeItem(prop, amount);
+      p.inventory.mergeItemByName(prop, amount);
       g.drawInventory();
     }
   }
@@ -229,9 +233,19 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
       req.Recipe.crafting = false;
       req.Recipe.craftQueue = [];
       
-      if (node.parent && node.parent.children.every(function(c) { return c.crafted })) {       
-        // All children have been crafted. Move up to the parent.
-        g.craftNodeFromRecipeTree(node.parent);
+      if (node.parent) {
+        if (node.parent.children.every(function(c) { return c.crafted })) {
+          // All children have been crafted. Move up to the parent.
+          g.craftNodeFromRecipeTree(node.parent);
+        }
+      }
+      else {
+        // Nothing left to craft.
+        // Enable the Craft All button.
+        $('#craftAll').removeAttr('disabled');
+
+        // Switch the Cancel button to say Craft.
+        $('#craft').val('Craft');
       }
     });
 }
@@ -261,13 +275,11 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   var craftTime = Math.round(recipe.craftTime * 1000 / multiplier);
   craftTime = this.cheat ? 0 : craftTime;
 
-  if (el.hasClass('selectedRecipe')) {
-    // Disable the Craft All button
-    $('#craftAll').prop('disabled', 'disabled');
+  // Disable the Craft All button
+  $('#craftAll').prop('disabled', 'disabled');
 
-    // Switch the Craft button to say Cancel
-    $('#craft').val('Cancel');
-  }
+  // Switch the Craft button to say Cancel
+  $('#craft').val('Cancel');
 
   var id = item.name.replace(/ /g, '');
   $('#rcs_' + id).show().text('Crafting ' + amount);
@@ -277,7 +289,8 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   while(parent) {
     parent.item.Recipe.crafting = true;
     var parentId = parent.item.name.replace(/ /g, '');
-    $('#rcs_' + parentId).show().text('Waiting');    
+    $('#rcs_' + parentId).show().text('Waiting');
+    $('#r_' + parentId).addClass('animating');
     parent = parent.parent;
   }
 
@@ -300,12 +313,6 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
       if (requiredRecipe.amount == 0) {
         $('#rcs_' + id).hide();
         $(this).removeClass('animating');
-
-        // Enable the Craft All button
-        $('#craftAll').removeAttr('disabled');
-
-        // Switch the Cancel button to say Craft
-        $('#craft').val('Craft');
 
         // During the crafting, the selected recipe could have changed.
         // If so, remove the background bar at the end of the animation.
@@ -367,14 +374,20 @@ Game.prototype.drawRecipes = function() {
             $row.css('background-color', color);
             $row.css('color', 'white');
 
-            var disabled = (amount == 0);
-            if (disabled) {
-              $('#craft').prop('disabled', 'disabled');
+            var cantCraft = (amount == 0);
+            if (cantCraft || isAnimating) {
               $('#craftAll').prop('disabled', 'disabled');
             }
-            else if (!isAnimating) {
-              $('#craft').removeAttr('disabled');
+            else {
               $('#craftAll').removeAttr('disabled');
+            }
+            
+            if (isAnimating) {
+              $('#craft').removeAttr('disabled');
+            }
+            
+            if (cantCraft && !isAnimating) {
+              $('#craft').prop('disabled', 'disabled');
             }
           }
           else
@@ -433,7 +446,6 @@ Game.prototype.drawRecipes = function() {
 Game.prototype.drawInventory = function() {
   for (var prop in this.player.inventory.items) {
     if(this.player.inventory.items.hasOwnProperty(prop)) {
-      //var amount = this.player.inventory.items[prop].amount;
       var amount = this.player.inventory.getNumberOfItemFromInventory(prop);
       var id = prop.replace(/ /g, '')
       var value = $('#iv_' + id);

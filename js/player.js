@@ -107,7 +107,7 @@ Player.prototype.determineRecipeDifficulty = function(recipe) {
 }
 
 Player.prototype.collect = function(drops) {
-  this.inventory.merge(drops);
+  this.inventory.mergeDrops(drops);
 }
 
 Player.prototype.getCraftableAmount = function(recipe) {

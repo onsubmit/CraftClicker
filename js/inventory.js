@@ -1,4 +1,5 @@
 function Inventory() {
+  this.size = 0;
   this.items = {};
   this.reserved = {};
   this.forges = [];
@@ -106,42 +107,39 @@ Inventory.prototype.craft = function(requiredRecipe) {
   
     // Put the item into the inventory.
     // The item could be a forge if the forge array was full.
-    if (this.items[item.name]) {
-      this.items[item.name].amount += makes;
-    }
-    else {
-      this.items[item.name] = 
-      {
-        Item: item,
-        amount:makes
-      };
-    }
+    this.mergeItem(item, makes);
   }
 }
 
-Inventory.prototype.merge = function(drops) {
+Inventory.prototype.mergeDrops = function(drops) {
   for (var prop in drops) {
     if(drops.hasOwnProperty(prop)) {
       var drop = drops[prop];
-      if (this.items[drop.item.name]) {
-        this.items[drop.item.name].amount += drop.amount;
-      }
-      else {
-        this.items[drop.item.name] = 
-        {
-          Item: drop.item,
-          amount: drop.amount
-        };
-      }
+      this.mergeItem(drop.item, drop.amount);
     }
   }
 }
 
-Inventory.prototype.mergeItem = function(name, amount) {
+Inventory.prototype.mergeItem = function(item, amount) {
+  if (this.items[item.name]) {
+    this.items[item.name].amount += amount;
+  }
+  else {
+    this.size++;
+    this.items[item.name] = 
+    {
+      Item: item,
+      amount: amount
+    };
+  }
+}
+
+Inventory.prototype.mergeItemByName = function(name, amount) {
   if (this.items[name]) {
     this.items[name].amount += amount;
   }
   else {
+    this.size++;
     var itemName = name.replace(/ /g, '');
     this.items[name] = 
     {

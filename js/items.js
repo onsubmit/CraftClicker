@@ -406,8 +406,8 @@ Items.GiantForge = {
   name: "Giant Forge",
   SmeltModifiers: {},
   Recipe: {
-    text: "Smelts Lead ore. Smelts lesser ores 50% faster than the Sturdy Forge.",
-    unlockedBy: Items.CastIronPick,
+    text: "Smelts Lead ore. Smelts lesser ores 50% faster than the Great Forge.",
+    unlockedBy: Items.GoldPick,
     craftTime: 60,
     Requirements:
     [
