@@ -3,7 +3,7 @@ function Game()
   this.player = new Player();
   //                        Grey    Green      Yellow     Orange
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
-  //setInterval(this.updateUI, 2000); Might not be necessary
+  setInterval(this.updateUI, 100);
 }
 
 Game.prototype.updateUI = function() {
@@ -17,7 +17,7 @@ Game.prototype.updateUI = function() {
 Game.prototype.step = function() {
   var drops = this.gather();
   this.player.collect(drops);
-  this.updateUI();
+  //this.updateUI();
 }
 
 Game.prototype.gather = function() {
@@ -107,6 +107,23 @@ Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
   
+  if (item.Recipe.crafting && item.Recipe.craftQueue && item.Recipe.craftQueue.length > 0) {
+    // This recipe is already crafting at least one node from a recipe tree.
+    while (item.Recipe.craftQueue.length > 0) {
+      // Traverse up to the top-most recipe node.
+      var node = item.Recipe.craftQueue.shift();
+      while (node.parent) {
+        node = node.parent;
+      }
+      
+      // Cancel the crafting of this recipe node.
+      g.cancelNodeFromRecipeTree(node);
+    }
+    
+    g.updateUI();
+    return;
+  }
+  
   p.requestCrafting(item, amount);
   g.updateUI();
   g.craftRecipeTree();
@@ -122,6 +139,74 @@ Game.prototype.craftRecipeTree = function(complexity) {
     
     // Craft it.
     g.craftNodeFromRecipeTree(node);
+  }
+}
+
+Game.prototype.cancelNodeFromRecipeTree = function(node) {
+  var g = window.game;
+  var p = g.player;
+  
+  var item = node.item;
+  
+  // Cancel the crafting
+  item.Recipe.crafting = false;
+  item.Recipe.craftQueue = [];
+  
+  // Release the reserved resources back into the inventory
+  for (var prop in node.reserved) {
+    var amount = node.reserved[prop];
+    var name = prop.replace(/ /g, '');
+    var releasedItem = Items[name]; // Will be undefined if raw resource.
+    
+    var isForge = releasedItem && releasedItem.type && releasedItem.type == ItemType.Forge;
+    if (isForge && p.inventory.forges.length < p.inventory.maxNumForges) {
+      // Release the forges from the forge array first.
+      var numForgesReleased = 0;
+      for (var i = 0; i < p.inventory.forges.length; i++) {
+        var forge = p.inventory.forges[i];
+        if (forge.level == releasedItem.level && forge.reserved) {
+          forge.reserved = false;
+          numForgesReleased++;
+        }
+      }
+      
+      // Release the remaining forges into the inventory.
+      if (numForgesReleased < amount) {
+        p.inventory.mergeItem(prop, amount - numForgesReleased);
+      }
+    }
+    else {
+      p.inventory.mergeItem(prop, amount);
+      g.drawInventory();
+    }
+  }
+  
+  var id = item.name.replace(/ /g, '');
+  var $el = $('#r_' + id);
+  
+  if ($el.hasClass('animating')) {
+    // Remove the background animation bar (unless recipe is selected)
+    if (!$el.hasClass('selectedRecipe')) {
+      unselectRecipe($el);
+    }
+    
+    // Stop the animation
+    $el.stop();
+    $el.removeClass('animating');
+  }
+
+  // Return the width of the recipe to full-width
+  $el.width(g.recipeWidth);
+  
+  // Remove the crafting status.
+  $('#rcs_' + id).text('').hide();
+
+  $('#craft').val('Craft');
+  $('#craftAll').removeAttr('disabled');
+  
+  while (node.children.length > 0) {
+    var child = node.children.shift();
+    g.cancelNodeFromRecipeTree(child);
   }
 }
 
@@ -141,6 +226,9 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
     function()
     {
       node.crafted = true;
+      req.Recipe.crafting = false;
+      req.Recipe.craftQueue = [];
+      
       if (node.parent && node.parent.children.every(function(c) { return c.crafted })) {       
         // All children have been crafted. Move up to the parent.
         g.craftNodeFromRecipeTree(node.parent);
@@ -156,43 +244,7 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   var amount = requiredRecipe.amount;
   console.log("Crafting " + amount + " of " + item.name);
 
-/*
-  if (!isCraftingMultiple && $('#craft').val() == 'Cancel') {
-    // Dequeue the crafting request
-    delete p.crafting[item.name];
-
-    // Stop the animation
-    el.stop();
-    el.removeClass('animating');
-
-    // Return the width of the recipe to full-width
-    el.width(g.recipeWidth);
-
-    // Remove the background animation bar (unless recipe is selected)
-    if (!el.hasClass('selectedRecipe')) {
-      unselectRecipe($current);
-    }
-
-    $('#craft').val('Craft');
-    $('#craftAll').removeAttr('disabled');
-    return;
-  }
-*/
-
   var recipe = item.Recipe;
-/*
-  // Confirm the necessary requirements are still met for this recipe
-  
-  if (p.getCraftableAmount(recipe) == 0) {
-    // Stop the animation
-    el.stop();
-    
-    // Return the width of the recipe to full-width
-    el.width(g.recipeWidth);
-    return;
-  }
-  */
-
   var multiplier = 0;
   if (recipe.forge) {
     var smeltModifier = 1;
@@ -220,10 +272,12 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   var id = item.name.replace(/ /g, '');
   $('#rcs_' + id).show().text('Crafting ' + amount);
   
+  recipe.crafting = true;
   var parent = requiredRecipe.parent;
   while(parent) {
+    parent.item.Recipe.crafting = true;
     var parentId = parent.item.name.replace(/ /g, '');
-    $('#rcs_' + parentId).show().text('Waiting');
+    $('#rcs_' + parentId).show().text('Waiting');    
     parent = parent.parent;
   }
 
@@ -233,49 +287,15 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
     craftTime,
     "linear",
     function() {    
-      /*    
-      // Clicking the cancel icon removes the queued up crafting request
-      if (!p.requiredRecipes[item.complexity] || 
-          !p.requiredRecipes[item.complexity][item.name] || 
-           p.requiredRecipes[item.complexity][item.name].amount == 0) {
-        amount = 0;
+      p.craft(requiredRecipe);
+      g.updateUI();
+      drawCurrentRecipeRequirements();
+      if (requiredRecipe.amount > 0) {
+        g.showCraftingAnimation(requiredRecipe, el, doneCallback);
       }
-      else {
-        // Confirm the necessary requirements are still met for this recipe.
-        // Since gathered materials could have changed during the crafting of this item,
-        // recalculate the total amount that can still be crafted.
-        amount = p.getCraftableAmountFromInventory(recipe);
+      else if (doneCallback) {
+        doneCallback();
       }
-      */
-      
-      /*
-      if (amount == 0) {
-        // Stop the animation
-        el.stop();
-
-        // Return the width of the recipe to full-width
-        el.width(g.recipeWidth);
-
-        if (el.hasClass('selectedRecipe')) {
-          // Enable the Craft All button
-          $('#craftAll').removeAttr('disabled');
-
-          // Switch the Cancel button to say Craft
-          $('#craft').val('Craft');
-        }
-      }
-      else {
-      */
-        p.craft(requiredRecipe);
-        g.updateUI();
-        drawCurrentRecipeRequirements();
-        if (requiredRecipe.amount > 0) {
-          g.showCraftingAnimation(requiredRecipe, el, doneCallback);
-        }
-        else if (doneCallback) {
-          doneCallback();
-        }
-      //}
 
       if (requiredRecipe.amount == 0) {
         $('#rcs_' + id).hide();
@@ -293,37 +313,6 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
           unselectRecipe(el);
         }
       }
-
-      // TODO: UPDATE THIS WITH THE NEW CRAFTING QUEUE LOGIC, DOOFUS
-      /* 
-      // Iterate through all other recipes queued up for crafting to confirm the necessary requirements are still met.
-      // If not, cancel the crafting.
-      for (var prop in p.crafting) {
-        if(p.crafting.hasOwnProperty(prop)) {
-          var $queuedRecipe = p.crafting[prop];
-          var $queuedCancelLink = $queuedRecipe.find('.cancel');
-          var amount = p.getCraftableAmount($queuedRecipe.data().Recipe);
-          if (amount == 0) {
-            // Stop the animation
-            $queuedRecipe.stop();
-
-            // Return the width of the recipe to full-width
-            $queuedRecipe.width(g.recipeWidth);
-
-            // Hide the cancel icon
-            $queuedCancelLink.hide();
-
-            // Remove the background animation bar (unless recipe is selected)
-            if (!$queuedRecipe.hasClass('selectedRecipe')) {
-              unselectRecipe($queuedRecipe);
-            }
-
-            delete p.crafting[prop];
-            $queuedRecipe.removeClass('animating');
-          }
-        }
-      }
-      */
     });
 }
 
@@ -643,7 +632,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
     var isForge = req.resource.type && req.resource.type == ItemType.Forge;
 
     var missingAmount = 0;
-    var currentAmount = p.inventory.items[req.resource.name] ? p.inventory.items[req.resource.name].amount : 0;
+    var currentAmount = (p.inventory.items[req.resource.name] ? p.inventory.items[req.resource.name].amount : 0);
     if (isForge) {
       var forgeLevel = req.resource.level;
       for (var j = 0; j < p.inventory.forges.length; j++) {

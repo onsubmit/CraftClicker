@@ -371,7 +371,7 @@ Items.SturdyForge = {
     [
       { resource: Items.IronBar, amount: 8 },
       { resource: Items.CopperBar, amount: 8 },
-      { resource: Items.BasicForge, amount: 4 }
+      { resource: Items.BasicForge, amount: 1 }
     ]
   }
 }
@@ -392,7 +392,7 @@ Items.GreatForge = {
       { resource: Items.IronBar, amount: 16 },
       { resource: Items.CopperBar, amount: 16 },
       { resource: Items.GoldBar, amount: 8 },
-      { resource: Items.SturdyForge, amount: 4 }
+      { resource: Items.SturdyForge, amount: 1 }
     ]
   }
 }
@@ -417,7 +417,7 @@ Items.GiantForge = {
       { resource: Items.BronzeBar, amount: 8 },
       { resource: Items.AluminumBar, amount: 8 },
       { resource: Items.SteelBar, amount: 8 },
-      { resource: Items.GreatForge, amount: 4 }
+      { resource: Items.GreatForge, amount: 1 }
     ]
   }
 }

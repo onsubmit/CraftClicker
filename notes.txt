@@ -1,11 +1,5 @@
-Update inventory.buildRecipeTree()
-Update code near "// Remove them from the player's inventory." to support reserving a forge
+TODO: When crafting a forge, if lesser forges are crafted first and there are empty forge slots, put them in the forge array and mark them as reserved
 
-If forge is reserved, can't be used for crafting. Done
-Crafting of forge cancelled, release reserved forges
-At end of crafting Sturdy Forge, consume Basic Forge
-
-TODO: Only update UI every x seconds instead of at every gather
-TODO: "Waiting" text doesn't work anymore. done
-
-TODO: Figure out cancelling
+Crafting Great Forge: "Crafting #" value keeps bouncing between 2 different numbers.
+Happening because this.determineRecipesToCraft() returns the Iron Ore node for both the Great Forge and the Sturdy Forge.
+Can't kick them both off at the same time obviously. Merge them? Figure this out.

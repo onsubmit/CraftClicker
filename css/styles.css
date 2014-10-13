@@ -17,7 +17,6 @@ div#container {
 }
 
 div#inventory {
-  float: right;
 }
 
 table#inventoryTable {
@@ -47,7 +46,7 @@ div#recipes {
 }
 
 div#recipeScroll {
-  height: 400px;
+  height: 300px;
   border-bottom: 2px solid #666;
   overflow-y: auto;
   overflow-x: hidden;
@@ -200,9 +199,8 @@ input#craft {
 }
 
 div#gatherActions {
-  clear: both;
+  width: 270px;
   background-color: white;
-  text-align: center;
   font-weight: bold;
   padding: 4px;
 }
@@ -213,6 +211,13 @@ div#gatherActions a:link, div#gatherActions a:visited {
 
 div#gatherActions a:hover, div#gatherActions a:active {
   color: #666;
+}
+
+div#gatherActions button {
+  padding: 4px;
+  margin-top: 4px;
+  font-weight: bold;
+  width: 100%;
 }
 
 div#gatherContainer {
@@ -237,14 +242,10 @@ div#durability {
 }
 
 div#forges {
-  width: 100%;
-  text-align: center;
   margin-bottom: 20px;
 }
 
 div#forges table {
-  margin-left: auto;
-  margin-right: auto;
   text-align: left;
   font-size: 1em;
 }

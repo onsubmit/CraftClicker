@@ -34,46 +34,27 @@ Player.prototype.requestCrafting = function(item, amount, el) {
   // Build the recipe tree
   var recipeTree = this.inventory.buildRecipeTree(item, amount);
   
-  // Determine the recipes of complexity: 1
-  var newRecipes = this.determineRecipesOfComplexity(recipeTree, 1);
+  // Determine the recipes in the tree with no dependent recipes.
+  var newRecipes = this.determineRecipesToCraft(recipeTree);
   
   // Add these recipes to the craft queue
   this.requiredRecipes = this.requiredRecipes.concat(newRecipes);
 }
 
-Player.prototype.determineRecipesOfComplexity = function(node, complexity, recipes) {
+Player.prototype.determineRecipesToCraft = function(node, recipes) {
   recipes = recipes || [];
   
-  if (node.item.complexity == complexity) {
+  // Find all the recipes without dependent recipes.
+  if (node.children.length == 0) {
     recipes.push(node);
   }
   
   for (var i = 0; i < node.children.length; i++) {
-    this.determineRecipesOfComplexity(node.children[i], complexity, recipes);
+    this.determineRecipesToCraft(node.children[i], recipes);
   }
   
   return recipes;
 }
-
-/*
-Player.prototype.mergeNewRequiredRecipes = function(node, minComplexity) {
-  var complexity = node.item.complexity;
-  var minComplexity = Math.min(minComplexity, complexity) || complexity;
-  if (!this.requiredRecipes[complexity]) {
-    // Add new complexity.
-    this.requiredRecipes[complexity] = [ node ];
-  }
-  else {
-    this.requiredRecipes[complexity].push(node);
-  }
-  
-  for (var i = 0; i < node.children.length; i++) {
-    minComplexity = this.mergeNewRequiredRecipes(node.children[i], minComplexity);
-  }
-  
-  return minComplexity;
-}
-*/
 
 Player.prototype.queueRecipes = function() {
   var complexity = 1;
@@ -110,7 +91,7 @@ Player.prototype.levelUp = function() {
 
 Player.prototype.determineRecipeDifficulty = function(recipe) {
   var diff = this.level - recipe.level;
-  if (diff < 6) {
+  if (diff < 5) {
     return 3;
   }
 
@@ -118,7 +99,7 @@ Player.prototype.determineRecipeDifficulty = function(recipe) {
     return 2;
   }
 
-  if (diff < 20) {
+  if (diff < 15) {
     return 1;
   }
 

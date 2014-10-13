@@ -29,40 +29,29 @@ Inventory.prototype.craft = function(requiredRecipe) {
         }
       }
     }
-    
-    /*
-    var reqIsForge = req.resource.type && req.resource.type == ItemType.Forge;
-    if (!reqIsForge) {
-    
-
-    }
-    else {
-      // The requirement is a forge.
-      // Pick required forges from the forge array before any from the inventory.
-      reqForge = req.resource;
-      var numForgesConsumed = 0;
-      for (var j = 0; j < this.forges.length && numForgesConsumed < this.maxNumForges; j++) {
-        if (this.forges[j].level == reqForge.level) {
-          this.forges.splice(j--, 1);
-          numForgesConsumed++;
-        }
-      }
-
-      // Pick remaining required forges from the inventory.
-      if (numForgesConsumed < this.maxNumForges) {
-        var remainingToConsume = this.maxNumForges - numForgesConsumed;
-        this.items[req.resource.name].amount -= remainingToConsume;
-      }
-    }
-  */
   }
 
   
   var makes = recipe.makes || 1;
   requiredRecipe.amount -= 1;
+  var isForge = item.type && item.type == ItemType.Forge;
   if (requiredRecipe.parent) {
-    // Move the newly crafted item into the reserve of its parent.
-    if (!requiredRecipe.parent.reserved[item.name]) {
+    // Move the newly crafted item into the reserve of its parent unless it's a forge and there is an open slot in the forge array.
+    if (isForge && this.forges.length < this.maxNumForges) {
+        // There is an open forge slot.
+        // Add it to the forge array.
+        var forge = {
+          type: item.type,
+          level: item.level,
+          name: item.name,
+          SmeltModifiers: item.SmeltModifiers,
+          reserved: true // Added to the forge array, but reserved for the craft.
+        };
+        
+        this.forges.push(forge);
+        this.drawForges();
+    }
+    else if (!requiredRecipe.parent.reserved[item.name]) {
       requiredRecipe.parent.reserved[item.name] = makes;
     }
     else {
@@ -70,12 +59,18 @@ Inventory.prototype.craft = function(requiredRecipe) {
     }
   }
   else {
-    var isForge = item.type && item.type == ItemType.Forge;
     if (isForge) {
       if (this.forges.length < this.maxNumForges) {
         // There is an open forge slot.
         // Add it to the forge array.
-        this.forges.push(item);
+        var forge = {
+          type: item.type,
+          level: item.level,
+          name: item.name,
+          SmeltModifiers: item.SmeltModifiers
+        };
+        
+        this.forges.push(forge);
 
         // In the event some forges were consumed from both the forge array and the inventory,
         // there will be open slots in the forge array even after adding the newly crafted one.
@@ -95,9 +90,14 @@ Inventory.prototype.craft = function(requiredRecipe) {
     var isPick = item.type && item.type == ItemType.Pick;
     if (isPick) {
       if (!this.pick) {
-        this.pick = {};
-        $.extend(true, this.pick, item); // Deep copy pick item (as to not modify original item)
-        this.pick.maxDurability = this.pick.durability;
+        this.pick = {
+          durability: item.durability,
+          maxDurability: item.durability,
+          name: item.name,
+          image: item.image,
+          LootModifiers: item.LootModifiers,
+        };
+        
         $('#gather').prop("src", this.pick.image);
         $('#currentPick').text(this.pick.name);
         return;
@@ -117,21 +117,6 @@ Inventory.prototype.craft = function(requiredRecipe) {
       };
     }
   }
-  
-  /*
-  // Put the item into the inventory.
-  // The item could be a forge if the forge array was full.
-  if (this.items[item.name]) {
-    this.items[item.name].amount += (recipe.makes || 1);
-  }
-  else {
-    this.items[item.name] = 
-    {
-      Item: item,
-      amount: (recipe.makes || 1)
-    };
-  }
-  */
 }
 
 Inventory.prototype.merge = function(drops) {
@@ -149,6 +134,20 @@ Inventory.prototype.merge = function(drops) {
         };
       }
     }
+  }
+}
+
+Inventory.prototype.mergeItem = function(name, amount) {
+  if (this.items[name]) {
+    this.items[name].amount += amount;
+  }
+  else {
+    var itemName = name.replace(/ /g, '');
+    this.items[name] = 
+    {
+      Item: Items[itemName] || Resources[itemName],
+      amount: amount
+    };
   }
 }
 
@@ -325,6 +324,11 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
   }
   
   if (item.Recipe) {
+  
+    item.Recipe.craftQueue = item.Recipe.craftQueue || [];
+    item.Recipe.craftQueue.push(node);
+    item.Recipe.crafting = false;
+  
     // If crafting is required the player needs to reserve items from their inventory.
     // Dig down into the requirements of the recipe.
     for (var i = 0; i < item.Recipe.Requirements.length; i++) {
@@ -420,97 +424,6 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
   }
   
   return node;
-}
-
-Inventory.prototype.determineRequiredRecipes = function(item, multiplier, list, parent) {
-  list = list || {};
-  multiplier = multiplier || 1;
-
-  if (!list[item.complexity]) {
-    list[item.complexity] = {};
-  }
-
-  var reservedAmount = 0;
-  if (parent) {
-    // Current inventory taken into consideration for child recipes.
-    var currentAmount = this.getNumberOfItem(item);
-
-    // The player needs [multiplier] of an item.
-    // The player already has [currentAmount].
-    if (multiplier > currentAmount) {
-      // How many more of the child recipe does the player need to craft to have enough to craft the parent recipe?
-      var initialMultiplier = multiplier;
-      var difference = multiplier - currentAmount;
-      var makes = item.Recipe ? item.Recipe.makes : 1;
-      multiplier = Math.ceil(difference / makes);
-
-      // When the crafting of the child recipe is complete, the player will have ([multiplier] * [makes]) more of it.
-      var postCraftAddition = multiplier * makes;
-
-      // If this is greater than or equal to the amount required to craft the parent recipe,
-      // there's no need to reserve any of the child item from the player's inventory.
-      // Otherwise, the player needs to reserve the difference.
-      if (postCraftAddition < initialMultiplier) {
-        reservedAmount = initialMultiplier - postCraftAddition;
-      }
-    }
-    else {
-      // The player has enough in their inventory.
-      // Mark the required amount as reserved.
-      reservedAmount = multiplier;
-
-      // The player doesn't need to craft any to meet the parent recipe requirement.
-      multiplier = 0;
-    }
-  }
-
-  /*
-  if (reservedAmount > 0) {
-    this.mergeIntoReserved(list, item, reservedAmount);
-  }
-  */
-
-  if (multiplier > 0) {
-    if (!list[item.complexity][item.name]) {
-      list[item.complexity][item.name] = { item: item, amount: multiplier };
-    }
-    else {
-      list[item.complexity][item.name].amount += multiplier;
-    }
-
-    if (!item.Recipe) {
-      // We've drilled down to a raw resource.
-      // Reserve the resources from the inventory.
-      this.mergeIntoReserved(list, item, multiplier);
-      
-      return;
-    }
-
-    // If crafting is required the player needs to reserve more items for their inventory.
-    // Dig down into the requirements of the recipe.
-    for (var i = 0; i < item.Recipe.Requirements.length; i++) {
-      var req = item.Recipe.Requirements[i];
-      this.determineRequiredRecipes(req.resource, multiplier * req.amount, list, item);
-    }
-  }
-  
-  if (reservedAmount > 0) {
-    // Move the reserved items from the inventory into the reserve.
-    this.items[item.name] -= reservedAmount;
-
-    if (!list[parent.complexity][parent.name].reserved) {
-      list[parent.complexity][parent.name].reserved = {};
-      list[parent.complexity][parent.name].reserved[item.name] = reservedAmount;
-    }
-    else if (!list[parent.complexity][parent.name].reserved[item.name]) {
-      list[parent.complexity][parent.name].reserved[item.name] = reservedAmount;
-    }
-    else {
-      list[parent.complexity][parent.name].reserved[item.name] += reservedAmount;
-    }
-  }
-
-  return list;
 }
 
 Inventory.prototype.getNumberOfItem = function(item) {
