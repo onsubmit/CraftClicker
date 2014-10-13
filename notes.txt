@@ -3,3 +3,4 @@ TODO: When crafting a forge, if lesser forges are crafted first and there are em
 Crafting Great Forge: "Crafting #" value keeps bouncing between 2 different numbers.
 Happening because this.determineRecipesToCraft() returns the Iron Ore node for both the Great Forge and the Sturdy Forge.
 Can't kick them both off at the same time obviously. Merge them? Figure this out.
+Test
