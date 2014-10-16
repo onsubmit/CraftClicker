@@ -1,6 +1,6 @@
 body {
   font-family: georgia, arial, helvetica, sans-serif;
-  font-size: 0.8125em;
+  font-size: 0.9em;
   line-height: 1.3em;
   margin: 0;
   padding: 0;
@@ -101,6 +101,11 @@ div#recipeRequirements {
 div#recipeRequirements .recipeDesc {
   color: #999;
   font-size: 0.9em;
+}
+
+div#recipeRequirements .recipeUnlocks {
+  color: #FF8E46;
+  font-size: 0.8em;
 }
 
 table#recipeRequirementList {

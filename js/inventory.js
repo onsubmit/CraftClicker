@@ -22,7 +22,8 @@ Inventory.prototype.craft = function(requiredRecipe) {
       // Consume any forges from the forge array that were reserved.
       reqForge = req.resource;
       var numForgesConsumed = 0;
-      for (var j = 0; j < this.forges.length && numForgesConsumed < this.maxNumForges; j++) {
+      // All forge recipes require 1 lesser forge to craft.
+      for (var j = 0; j < this.forges.length && numForgesConsumed < req.amount; j++) {
         var forge = this.forges[j];
         if (forge.level == reqForge.level && forge.reserved) {
           this.forges.splice(j--, 1);
@@ -31,7 +32,6 @@ Inventory.prototype.craft = function(requiredRecipe) {
       }
     }
   }
-
   
   var makes = recipe.makes || 1;
   requiredRecipe.amount -= 1;
@@ -322,9 +322,6 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
   }
   
   if (item.Recipe) {
-  
-    item.Recipe.craftQueue = item.Recipe.craftQueue || [];
-    item.Recipe.craftQueue.push(node);
     item.Recipe.crafting = false;
   
     // If crafting is required the player needs to reserve items from their inventory.
@@ -391,7 +388,7 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
           reqForge = req.resource;
           var numForgesReserved = 0;
           
-          for (var j = 0; j < this.forges.length && numForgesReserved < this.maxNumForges; j++) {
+          for (var j = 0; j < this.forges.length && numForgesReserved < req.amount; j++) {
             var forge = this.forges[j];
             if (forge.level == reqForge.level && !forge.reserved) {
               forge.reserved = true;

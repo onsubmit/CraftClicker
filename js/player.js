@@ -11,9 +11,9 @@ function Player() {
   this.xpMax = 20;
 }
 
-Player.prototype.craft = function(requiredRecipe) {
+Player.prototype.craft = function(requiredRecipe, xpModifier) {
   var item = requiredRecipe.item;
-  this.addXP(item.Recipe);
+  this.addXP(item.Recipe, xpModifier);
 
   if (item.unlocks) {
     // The crafting of this item unlocks the recipes for at least one other item.
@@ -71,11 +71,11 @@ Player.prototype.queueRecipes = function() {
   }
 }
 
-Player.prototype.addXP = function(recipe) {
+Player.prototype.addXP = function(recipe, xpModifier) {
   var diff = this.determineRecipeDifficulty(recipe);
   var xpPercentIncrease = this.xpPercentages[diff];
   if (xpPercentIncrease > 0) {
-    this.xp += Math.round(this.xpMax * (xpPercentIncrease + 0.05 * Math.random()) / (this.level + 1));
+    this.xp += Math.round(xpModifier * this.xpMax * (xpPercentIncrease + 0.05 * Math.random()) / (this.level + 1));
   }
 
   if (this.xp >= this.xpMax) {
