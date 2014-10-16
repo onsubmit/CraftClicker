@@ -386,9 +386,10 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
           // The requirement is a forge.
           // Reserve forges from the forge array before any from the inventory.
           reqForge = req.resource;
+          var numForgesNeeded = multiplier * req.amount;
           var numForgesReserved = 0;
           
-          for (var j = 0; j < this.forges.length && numForgesReserved < req.amount; j++) {
+          for (var j = 0; j < this.forges.length && numForgesReserved < numForgesNeeded; j++) {
             var forge = this.forges[j];
             if (forge.level == reqForge.level && !forge.reserved) {
               forge.reserved = true;
@@ -397,8 +398,8 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
           }
 
           // Reserve remaining forges from the inventory.
-          if (numForgesReserved < currentAmount) {
-            var remainingToConsume = currentAmount - numForgesReserved;
+          if (numForgesReserved < numForgesNeeded) {
+            var remainingToConsume = numForgesNeeded - numForgesReserved;
             this.items[res.name].amount -= remainingToConsume;
           }
         }
