@@ -1,9 +1,13 @@
 function Game()
 {
+  this.crafting = false;
+  this.craftingNode = null;
+  this.craftingQueue = [];
   this.player = new Player();
+  
   //                        Grey    Green      Yellow     Orange
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
-  setInterval(this.updateUI, 100);
+  //setInterval(this.updateUI, 500);
 }
 
 Game.prototype.updateUI = function() {
@@ -17,7 +21,7 @@ Game.prototype.updateUI = function() {
 Game.prototype.step = function() {
   var drops = this.gather();
   this.player.collect(drops);
-  //this.updateUI();
+  this.updateUI();
 }
 
 Game.prototype.gather = function() {
@@ -111,31 +115,57 @@ Game.prototype.craftRecipe = function(item, amount) {
     return;
   }
   
-  if (item.Recipe.crafting && item.Recipe.craftQueue && item.Recipe.craftQueue.length > 0) {
-    // This recipe is already crafting at least one node from a recipe tree.
-    while (item.Recipe.craftQueue.length > 0) {
+  if (g.craftingNode) {
+    var id = item.name.replace(/ /g, '');
+    var craftStatus = $('#rcs_' + id).text();
+    if (craftStatus == '') {
+      // Queue up the recipe
+      g.craftingQueue.push({ item: item, amount: amount });
+      $('#rcs_' + id).show().text('Queued');
+      return;
+    }
+    else if (craftStatus == 'Queued') {
+      // The recipe is already queued. Remove it from the queue.
+      $('#rcs_' + id).text('').hide();
+      for (var i = 0; i < g.craftingQueue.length; i++) {
+        var x = g.craftingQueue[i];
+        if (item.name == x.item.name) {
+          g.craftingQueue.splice(i, 1);
+          return;
+        }
+      }
+    }
+    else {
+      // A recipe is already crafting.
       // Traverse up to the top-most recipe node.
-      var node = item.Recipe.craftQueue.shift();
+      var node = g.craftingNode;
       while (node.parent) {
         node = node.parent;
       }
       
       // Cancel the crafting of this recipe node.
       g.cancelNodeFromRecipeTree(node);
+      g.updateUI();
+      
+      if (g.craftingQueue.length > 0) {
+        var x = g.craftingQueue.shift();
+        g.craftRecipe(x.item, x.amount);
+      }
+      return;
     }
-    
-    g.updateUI();
-    return;
   }
   
   p.requestCrafting(item, amount);
-  //g.updateUI();
+  g.updateUI();
   g.craftRecipeTree();
 }
 
 Game.prototype.craftRecipeTree = function(complexity) {
   var g = window.game;
   var p = g.player;
+  
+  $('#craftAll').prop('disabled', 'disabled');
+  $('#craft').val('Cancel');
 
   while(p.requiredRecipes.length > 0) {
     // Get and remove the first recipe in the queue.
@@ -154,7 +184,6 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
   
   // Cancel the crafting
   item.Recipe.crafting = false;
-  item.Recipe.craftQueue = [];
   
   // Release the reserved resources back into the inventory
   for (var prop in node.reserved) {
@@ -205,8 +234,14 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
   // Remove the crafting status.
   $('#rcs_' + id).text('').hide();
 
-  $('#craft').val('Craft');
+  // Note that cancel is not occuring any longer.
+  g.craftingNode = null;
+  
+  // Enable the Craft All button.
   $('#craftAll').removeAttr('disabled');
+
+  // Switch the Cancel button to say Craft.
+  $('#craft').val('Craft');
   
   while (node.children.length > 0) {
     var child = node.children.shift();
@@ -225,13 +260,15 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
     highlightRecipe($reqEl);
   }
   
+  g.craftingNode = node;
+  
   // Kick off the crafting animation.
   g.showCraftingAnimation(node, $reqEl,
     function()
     {
       node.crafted = true;
       req.Recipe.crafting = false;
-      req.Recipe.craftQueue = [];
+      g.craftQueue = [];
       
       if (node.parent) {
         if (node.parent.children.every(function(c) { return c.crafted })) {
@@ -241,11 +278,21 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
       }
       else {
         // Nothing left to craft.
-        // Enable the Craft All button.
-        $('#craftAll').removeAttr('disabled');
+        g.craftingNode = null;
+        
+        if (g.craftingQueue.length > 0) {
+          var x = g.craftingQueue.shift();
+          g.craftRecipe(x.item, x.amount);
+        }
+        else {
+          // Enable the Craft All button.
+          $('#craftAll').removeAttr('disabled');
 
-        // Switch the Cancel button to say Craft.
-        $('#craft').val('Craft');
+          // Switch the Cancel button to say Craft.
+          $('#craft').val('Craft');
+          
+          g.updateUI();
+        }
       }
     });
 }
@@ -274,7 +321,7 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   multiplier = multiplier || 1;
   var craftTime = Math.round(recipe.craftTime * 1000 / multiplier);
   craftTime = this.cheat ? 0 : craftTime;
-
+  
   // Disable the Craft All button
   $('#craftAll').prop('disabled', 'disabled');
 
@@ -300,7 +347,9 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
     craftTime,
     "linear",
     function() {    
-      p.craft(requiredRecipe);
+      // Recipes that take longer to craft result in more XP.
+      var xpModifier = Math.min(1, recipe.craftTime / 5.0);
+      p.craft(requiredRecipe, xpModifier);
       g.updateUI();
       drawCurrentRecipeRequirements();
       if (requiredRecipe.amount > 0) {
@@ -311,7 +360,7 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
       }
 
       if (requiredRecipe.amount == 0) {
-        $('#rcs_' + id).hide();
+        $('#rcs_' + id).text('').hide();
         $(this).removeClass('animating');
 
         // During the crafting, the selected recipe could have changed.
@@ -368,26 +417,20 @@ Game.prototype.drawRecipes = function() {
             var currentAmount = p.inventory.items[item.name].amount;
             $('#r_' + id).prop('title', item.name + ' inventory: ' + currentAmount);
           }
-
+          
           var isAnimating = $row.hasClass('animating');
           if ($row.hasClass('selectedRecipe') || isAnimating) {
             $row.css('background-color', color);
             $row.css('color', 'white');
 
-            var cantCraft = (amount == 0);
-            if (cantCraft || isAnimating) {
+            var cantCraft = (!g.craftingNode && amount == 0);
+            if (cantCraft) {
               $('#craftAll').prop('disabled', 'disabled');
-            }
-            else {
-              $('#craftAll').removeAttr('disabled');
-            }
-            
-            if (isAnimating) {
-              $('#craft').removeAttr('disabled');
-            }
-            
-            if (cantCraft && !isAnimating) {
               $('#craft').prop('disabled', 'disabled');
+            }
+            else if (!g.craftingNode) {
+              $('#craftAll').removeAttr('disabled');
+              $('#craft').removeAttr('disabled');
             }
           }
           else
@@ -525,27 +568,27 @@ Game.prototype.r = function() {
 var game = new Game();
 
 highlightRecipe = function(el) {
+  var g = window.game;
+  var p  = g.player;
+  
+  var amount = el.find('span').text();
+  
   if (!el.hasClass('animating') ) {
     el.css('background-color', el.css('color'))
     el.css('color', '')
     el.addClass('background');
-    $('#craft').val('Craft');
-    $('#craftAll').removeAttr('disabled');
-  }
-  else {
-    $('#craft').val('Cancel');
-    $('#craftAll').prop('disabled', 'disabled');
+    
+    if (amount != '') {
+      $('#craft').val('Craft');
+      $('#craft').removeAttr('disabled');
+      $('#craftAll').removeAttr('disabled');
+    }
   }
 
-  var disabled = el.find('span').text() == '';
+  var disabled = (!g.craftingNode && amount == '');
   if (disabled) {
     $('#craft').prop('disabled', 'disabled');
     $('#craftAll').prop('disabled', 'disabled');
-  }
-  else if (!el.hasClass('animating')) {
-    $('#craft').removeAttr('disabled');
-    $('#craft').val('Craft');
-    $('#craftAll').removeAttr('disabled');
   }
 }
 
@@ -588,7 +631,7 @@ drawRecipeRequirements = function(el) {
 
   $div.empty();
 
-  $('<h1/>', {
+  $('<h2/>', {
     id: 'recipeName',
     text: item.name,
   }).appendTo($div);
@@ -598,6 +641,28 @@ drawRecipeRequirements = function(el) {
     text: 'Craft time: ' + createTimeString(recipe.craftTime),
   }).appendTo($div);
 
+  if (item.unlocks) {
+    var unlockStr = '';
+    for (var i = 0; i < item.unlocks.length; i++) {
+      var itemName = Items[item.unlocks[i]].name;
+      unlockStr += itemName;
+      if (i < item.unlocks.length - 1) {
+        if (item.unlocks.length > 2) {
+          unlockStr += ', '
+        }
+        
+        if (i == item.unlocks.length - 2) {
+          unlockStr += ' and ';
+        }
+      }
+    }
+    
+    var $unlocks = $('<p/>', {
+      class: 'recipeUnlocks',
+      text: 'Unlocks: ' + unlockStr
+    }).appendTo($div);
+  }
+  
   if (recipe.text) {
     $('<p/>', {
       text: recipe.text,
