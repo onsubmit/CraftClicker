@@ -111,26 +111,28 @@ Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
   
-  if (p.getCraftableAmount(item.Recipe) < amount) {
-    return;
-  }
-  
   if (g.craftingNode) {
     var id = item.name.replace(/ /g, '');
+    var $el = $('#r_' + id);
     var craftStatus = $('#rcs_' + id).text();
+
     if (craftStatus == '') {
       // Queue up the recipe
-      g.craftingQueue.push({ item: item, amount: amount });
+      g.craftingQueue.push({ item: item, amount: amount, el: $el });
       $('#rcs_' + id).show().text('Queued');
+      $el.addClass('queued');
+      setButtonState($el);
       return;
     }
     else if (craftStatus == 'Queued') {
       // The recipe is already queued. Remove it from the queue.
       $('#rcs_' + id).text('').hide();
+      $el.removeClass('queued');
       for (var i = 0; i < g.craftingQueue.length; i++) {
         var x = g.craftingQueue[i];
         if (item.name == x.item.name) {
           g.craftingQueue.splice(i, 1);
+          setButtonState(x.el);
           return;
         }
       }
@@ -149,10 +151,16 @@ Game.prototype.craftRecipe = function(item, amount) {
       
       if (g.craftingQueue.length > 0) {
         var x = g.craftingQueue.shift();
+        x.el.removeClass('queued');
+        setButtonState(x.el);
         g.craftRecipe(x.item, x.amount);
       }
       return;
     }
+  }
+  
+  if (p.getCraftableAmount(item.Recipe) < amount) {
+    return;
   }
   
   p.requestCrafting(item, amount);
@@ -268,7 +276,6 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
     {
       node.crafted = true;
       req.Recipe.crafting = false;
-      g.craftQueue = [];
       
       if (node.parent) {
         if (node.parent.children.every(function(c) { return c.crafted })) {
@@ -282,6 +289,7 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
         
         if (g.craftingQueue.length > 0) {
           var x = g.craftingQueue.shift();
+          x.el.removeClass('queued');
           g.craftRecipe(x.item, x.amount);
         }
         else {
@@ -321,6 +329,7 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   multiplier = multiplier || 1;
   var craftTime = Math.round(recipe.craftTime * 1000 / multiplier);
   craftTime = this.cheat ? 0 : craftTime;
+  craftTime = (this.slow ? craftTime * 10 : craftTime);
   
   // Disable the Craft All button
   $('#craftAll').prop('disabled', 'disabled');
@@ -568,27 +577,36 @@ Game.prototype.r = function() {
 var game = new Game();
 
 highlightRecipe = function(el) {
-  var g = window.game;
-  var p  = g.player;
-  
-  var amount = el.find('span').text();
-  
-  if (!el.hasClass('animating') ) {
+  if (!el.hasClass('animating')) {
     el.css('background-color', el.css('color'))
     el.css('color', '')
     el.addClass('background');
-    
-    if (amount != '') {
-      $('#craft').val('Craft');
-      $('#craft').removeAttr('disabled');
-      $('#craftAll').removeAttr('disabled');
-    }
   }
+  
+  setButtonState(el);
+}
 
-  var disabled = (!g.craftingNode && amount == '');
-  if (disabled) {
-    $('#craft').prop('disabled', 'disabled');
+setButtonState = function(el) {
+  var amount = el.find('span').text();
+  if (el.hasClass('animating') || el.hasClass('queued')) {
+    $('#craft').val('Cancel');
+    $('#craft').removeAttr('disabled');
     $('#craftAll').prop('disabled', 'disabled');
+  }
+  
+  if (!el.hasClass('animating')) {  
+    if (!el.hasClass('queued')) {
+      if (amount != '') {
+        $('#craft').val('Craft');
+        $('#craft').removeAttr('disabled');
+        $('#craftAll').removeAttr('disabled');
+      }
+      else {
+        console.log('disabling');
+        $('#craft').prop('disabled', 'disabled');
+        $('#craftAll').prop('disabled', 'disabled');
+      }
+    }
   }
 }
 

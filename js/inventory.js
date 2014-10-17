@@ -364,7 +364,7 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
         else {
           // The player has enough in their inventory.
           // Mark the required amount as reserved.
-          reservedAmount = multiplier;
+          reservedAmount = multiplier * req.amount;
 
           // The player doesn't need to craft any to meet the parent recipe requirement.
           needs = 0;

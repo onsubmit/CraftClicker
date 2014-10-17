@@ -12,7 +12,7 @@ h1, h2, h3, h4, h5, h6, p {
 }
 
 div#container {
-  min-width: 480px;
+  min-width: 550px;
   margin: 10px;
 }
 
@@ -39,15 +39,15 @@ table#inventoryTable td, table#inventoryTable th {
 
 div#recipes {
   float: left;
-  margin: 0 10px 10px 0;
+  margin: 0 30px 30px 0;
   width: 270px;
-  border: 4px solid #666;
-  background-color: #0d0d0d;
+  border: 1px solid #999;
+  background: url('../images/bg.png');
+  box-shadow: 0px 0px 5px #999;
 }
 
 div#recipeScroll {
   height: 300px;
-  border-bottom: 2px solid #666;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -61,9 +61,10 @@ ul#recipeList {
 
 ul#recipeList li {
   padding: 4px;
-  border-bottom: 1px solid #0d0d0d;
   white-space: nowrap;
   overflow: visible !important; /* jQuery's animate forces overflow: hidden; */
+  text-shadow: 2px 2px #000;
+  margin-bottom: 1px;
 }
 
 ul#recipeList li span {
@@ -95,7 +96,7 @@ div#recipeRequirements {
   color: white;
   height: 232px;
   padding: 8px;
-  border-bottom: 2px solid #666;
+  text-shadow: 2px 2px #000;
 }
 
 div#recipeRequirements .recipeDesc {
@@ -132,10 +133,6 @@ table#recipeRequirementList tr.missing span.amount {
   color: #b00;
 }
 
-input#craftAmount {
-  width: 40px;
-}
-
 .alignRight {
   text-align: right;
 }
@@ -169,8 +166,8 @@ a:hover, a:active {
 }
 
 div#experience {
-  background-color: #0d0d0d;
   border: 1px solid #0d0d0d;
+  border-bottom-style: none
 }
 
 div#experienceBar {
@@ -184,12 +181,20 @@ div#experienceBarText {
 div#actions {
   height: 40px;
   padding: 4px;
-  background-color: white;
   text-align: center;
+  margin-bottom: 10px;
 }
 
 div#actions input[type=button] {
   width: 80px;
+}
+
+button {
+  height: 40px;
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0px 0px 5px #999;
 }
 
 div#actions input {
@@ -197,6 +202,18 @@ div#actions input {
   font-size: 1.2em;
   font-weight: bold;
   text-align: center;
+  color: #fff;
+  background-color: #000;
+  border: 1px outset #fff;
+}
+
+div#actions input:disabled {
+  color: #666;
+  border: 1px outset #666;
+}
+
+input#craftAmount {
+  width: 40px;
 }
 
 input#craft {
@@ -207,7 +224,7 @@ div#gatherActions {
   width: 270px;
   background-color: white;
   font-weight: bold;
-  padding: 4px;
+  margin-bottom: 10px;
 }
 
 div#gatherActions a:link, div#gatherActions a:visited {

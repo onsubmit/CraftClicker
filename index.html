@@ -11,32 +11,34 @@
   </head>
   <body>
     <div id="container">
-      <div id="gatherActions">
-        <div>
-          <div id="gatherContainer">
-            <img id="gather" src="images/pick-disabled.png" alt="Gather" title="Gather" onclick="game.step();" />
-            <div id="durability"></div>
+      <div class="floatLeft">
+        <div id="gatherActions">
+          <div>
+            <div id="gatherContainer">
+              <img id="gather" src="images/pick-disabled.png" alt="Gather" title="Gather" onclick="game.step();" />
+              <div id="durability"></div>
+            </div>
           </div>
+          <div><button id="gatherLink" onclick="game.step();">Gather with <i id="currentPick">Bare Hands</i></button></div>
         </div>
-        <div><button id="gatherLink" onclick="game.step();">Gather resources with your <br /><i id="currentPick">Bare Hands</i></button></div>
-      </div>
-      <div id="recipes">
-        <div id="experience"class="smallBar">
-          <div id="experienceBar" class="smallBar">
-              <div id="experienceBarText" class="smallBar smallBarText"></div>
+        <div id="recipes">
+          <div id="experience"class="smallBar">
+            <div id="experienceBar" class="smallBar">
+                <div id="experienceBarText" class="smallBar smallBarText"></div>
+            </div>
           </div>
-        </div>
-        <div id="recipeScroll">
-          <ul id="recipeList">
-          </ul>
-        </div>
-        <div id="recipeRequirementsScroll">
-          <div id="recipeRequirements"></div>
-        </div>
-        <div id="actions">
-          <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
-          <input id="craftAmount" value="1" onkeypress='return event.charCode >= 48 && event.charCode <= 57'></input>
-          <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
+          <div id="recipeScroll">
+            <ul id="recipeList">
+            </ul>
+          </div>
+          <div id="recipeRequirementsScroll">
+            <div id="recipeRequirements"></div>
+          </div>
+          <div id="actions">
+            <input id="craftAll" type="button" value="Craft All" onclick="game.craftAll()" disabled="disabled"></input>
+            <input id="craftAmount" value="1" onkeypress='return event.charCode >= 48 && event.charCode <= 57'></input>
+            <input id="craft" type="button" value="Craft" onclick="game.craft($('#craftAmount').val())" disabled="disabled"></input>
+          </div>
         </div>
       </div>
       <div id="inventory">
