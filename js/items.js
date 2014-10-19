@@ -67,6 +67,17 @@ determineTotalRequirements = function(item) {
   }
 }
 
+determineSellValue = function(item) {
+  var sellValue = 0;
+  for (var i = 0; i < item.Recipe.Requirements.length; i++) {
+    var req = item.Recipe.Requirements[i];
+    var subItem = req.resource;
+    sellValue += (req.amount * subItem.sellValue);
+  }
+  
+  item.sellValue = sellValue * Math.ceil(item.Recipe.craftTime / 10);
+}
+
 determineItemComplexity = function(item) {
   item.complexity = item.complexity || 0;
 
@@ -438,6 +449,7 @@ for (var prop in Items) {
     var item = Items[prop];
     determineUnlocks(item);
     determineTotalRequirements(item);
+    determineSellValue(item);
     determineItemComplexity(item);
     determineMakes(item);
   }

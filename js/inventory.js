@@ -104,10 +104,25 @@ Inventory.prototype.craft = function(requiredRecipe) {
         return;
       }
     }
-  
+    
+    var inventoryItem = this.items[item.name];
+    if (inventoryItem && inventoryItem.keep >= 0 && inventoryItem.amount + makes > inventoryItem.keep) {
+      // Crafting this item will exceed the amount the player wishes to keep.
+      // Sell any extra.
+      var numToSell = inventoryItem.amount + makes - inventoryItem.keep;
+      var numToPutIntoInventory = makes - numToSell;
+      if (numToPutIntoInventory > 0) {
+        this.mergeItem(item, numToPutIntoInventory);
+      }
+      
+      return numToSell;
+    }
+    else {
     // Put the item into the inventory.
     // The item could be a forge if the forge array was full.
     this.mergeItem(item, makes);
+    return 0;
+    }
   }
 }
 
@@ -224,6 +239,7 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
 Inventory.prototype.drawForges = function() {
   for (var i = 0; i < this.maxNumForges; i++) {
     if (i < this.forges.length) {
+      $('#forges').show();
       var forge = this.forges[i];
       $('#fn' + i).text(forge.name.replace(' Forge', ''));
       $('#f' + i).empty().append($('<img/>', { src: 'images/forge.png' }));
@@ -441,4 +457,18 @@ Inventory.prototype.getNumberOfItem = function(item) {
 
 Inventory.prototype.getNumberOfItemFromInventory = function(itemName) {
   return this.items[itemName] ? this.items[itemName].amount : 0;
+}
+
+Inventory.getMoneyString = function(money) {
+  var copper = Math.floor(money % 100);
+  money = Math.floor((money - copper) / 100);
+  var silver = Math.floor(money % 100);
+  var gold = Math.floor((money - silver) / 100);
+
+  var moneyString = '';
+  moneyString += gold > 0 ? gold + 'g ' : '';
+  moneyString += silver > 0 ? silver + 's ' : '';
+  moneyString += moneyString.length > 0 ? (copper > 0 ? copper + 'c' : '') : copper + 'c';
+
+  return moneyString;
 }

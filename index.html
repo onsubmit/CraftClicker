@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>CraftClicker 1.1 beta</title>
+    <title>CraftClicker 1.2 beta</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
@@ -27,6 +27,7 @@
                 <div id="experienceBarText" class="smallBar smallBarText"></div>
             </div>
           </div>
+          <div id="money"></div>
           <div id="recipeScroll">
             <ul id="recipeList">
             </ul>
@@ -42,8 +43,8 @@
         </div>
       </div>
       <div id="inventory">
-        <h2>Forges</h2>
         <div id="forges">
+          <h2>Forges</h2>
           <table>
             <thead>
               <tr id="forgeNames">
@@ -68,10 +69,22 @@
           <thead>
             <th>Item</th>
             <th>Amount</th>
+            <th>
+              <div id="keepHelpTooltip">
+                <ol>
+                  <li>Click the value to specify the amount to be kept.</li>
+                  <li>Any extra will be sold automatically.</li>
+                  <li>Delete the value to keep all items.</li>
+                </ol>
+                <a href="" id="keepHelpClose" class="floatRight">Close</a>
+              </div>
+              Keep<sup><a href="" id="keepHelp">?</a></sup>
+            </th>
           </thead>
           <tbody>
           </tbody>
         </table>
+        <a href="" id="sellAll">Sell all</a>
       </div>
       <div id="help">
         <h4>Keyboard shortcuts</h4>

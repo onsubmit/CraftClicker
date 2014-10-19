@@ -17,6 +17,9 @@ div#container {
 }
 
 div#inventory {
+  display: none;
+  width: 300px;
+  margin-left: 300px;
 }
 
 table#inventoryTable {
@@ -35,6 +38,13 @@ table#inventoryTable td, table#inventoryTable th {
   border-bottom: 1px solid #000;
   border-right: 1px solid #000;
   padding: 4px;
+  white-space: nowrap;
+}
+
+#money {
+  text-align: right;
+  color: white;
+  padding: 5px;
 }
 
 div#recipes {
@@ -109,11 +119,24 @@ div#recipeRequirements .recipeUnlocks {
   font-size: 0.8em;
 }
 
+div#recipeRequirements .recipeSellsFor {
+  color: #666;
+  font-size: 0.8em;
+}
+
 table#recipeRequirementList {
   color: white;
   border-spacing: 0;
   border-collapse: separate;
   margin-top: 10px;
+}
+
+a:link, a:visited {
+  color: white;
+}
+
+a:hover, a:active {
+  color: #bbb;
 }
 
 table#recipeRequirementList td {
@@ -147,14 +170,6 @@ table#recipeRequirementList tr.missing span.amount {
 
 .floatLeft {
   float: left;
-}
-
-a:link, a:visited {
-  color: white;
-}
-
-a:hover, a:active {
-  color: #bbb;
 }
 
 .missing, .missing a:link, .missing a:visited {
@@ -227,13 +242,47 @@ div#gatherActions {
   margin-bottom: 10px;
 }
 
-div#gatherActions a:link, div#gatherActions a:visited {
-  color: black;
+div#gatherActions a:link, a#sellAll:link, div#gatherActions a:visited, a#sellAll:visited{
+  color: #000;
 }
 
-div#gatherActions a:hover, div#gatherActions a:active {
+div#gatherActions a:hover, a#sellAll:hover, div#gatherActions a:active, a#sellAll:active {
   color: #666;
 }
+
+a#keepHelp:link, a#keepHelp:visited {
+  color: #00E;
+}
+
+a#keepHelp:hover, a#keepHelp:active {
+  color: #551A8B;
+}
+
+div#keepHelpTooltip {
+  position: fixed;
+  font-size: 0.8125em;
+  padding: 5px;
+  color: #ddd;
+  background: #002;
+  opacity: 0.9;
+  z-index: 10;
+  display: none;
+  text-align: left;
+}
+
+div#keepHelpTooltip ol {
+  padding-left: 20px;
+  margin: 0;
+}
+
+div#keepHelpTooltip a:link, div#keepHelpTooltip a:visited {
+  color: #FFF;
+}
+
+div#keepHelpTooltip a:hover, div#keepHelpTooltip a:active {
+  color: #666;
+}
+
 
 div#gatherActions button {
   padding: 4px;
@@ -264,6 +313,7 @@ div#durability {
 }
 
 div#forges {
+  display: none;
   margin-bottom: 20px;
 }
 
@@ -287,6 +337,10 @@ div#forges table td {
 
 div#help {
   clear: both;
+}
+
+input.keep {
+  width: 3em;
 }
 
 .smallBar {

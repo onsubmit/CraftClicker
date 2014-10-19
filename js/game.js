@@ -14,6 +14,7 @@ Game.prototype.updateUI = function() {
   var g = window.game;
 
   g.drawLevel();
+  g.drawMoney();
   g.drawInventory();
   g.drawRecipes();
 }
@@ -404,6 +405,12 @@ Game.prototype.drawLevel = function() {
   }
 }
 
+Game.prototype.drawMoney = function() {
+  var g = window.game;
+  var p = g.player;
+  $('#money').text(Inventory.getMoneyString(p.money));
+}
+
 Game.prototype.drawRecipes = function() {
   var g = window.game;
   var p = g.player;
@@ -496,19 +503,18 @@ Game.prototype.drawRecipes = function() {
 }
 
 Game.prototype.drawInventory = function() {
-  for (var prop in this.player.inventory.items) {
-    if(this.player.inventory.items.hasOwnProperty(prop)) {
-      var amount = this.player.inventory.getNumberOfItemFromInventory(prop);
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+  
+  for (var prop in inv.items) {
+    if(inv.items.hasOwnProperty(prop)) {
+      var amount = inv.getNumberOfItemFromInventory(prop);
       var id = prop.replace(/ /g, '')
       var value = $('#iv_' + id);
       if (value.length) {
-        if (amount > 0) {
-          value.text(amount);
-        }
-        else {
-          // No more of this item in the inventory. Remove the row.
-          $('#ir_' + id).remove();
-        }
+        $('#inventory').show();
+        value.text(amount);
       }
       else {
         if (amount > 0) {
@@ -529,6 +535,47 @@ Game.prototype.drawInventory = function() {
                 id: 'iv_' + id,
                 text: amount
               })
+            )
+            .append(
+              $('<td/>').append(
+                $('<span/>',
+                {
+                  id: 'ik_' + id,
+                  text: '\u221E'
+                }).on('click',
+                function() {
+                  $('#ik_' + id).hide();
+                  $('#iktb_' + id).show().focus();
+                }
+              )
+              ).append(
+               $('<input/>',
+                {
+                  id: 'iktb_' + id,
+                  class: 'keep',
+                })
+                .on('keypress', function() {
+                  return event.charCode >= 48 && event.charCode <= 57;
+                })
+                .blur(
+                  function() {
+                    var val = $(this).val();
+                    var val = (val == '' ? -1 : val);
+                    $('#ik_' + id).text(val >= 0 ? val : '\u221E').show();
+                    $(this).hide();
+                    
+                    var invItem = inv.items[prop];
+                    invItem.keep = parseInt(val);
+                    
+                    if (invItem.keep < invItem.amount) {
+                      p.sellItem(invItem.Item, invItem.amount - invItem.keep);
+                      invItem.amount = invItem.keep;
+                      g.updateUI();
+                    }
+                  }
+                )
+                .hide()
+              )
             );
 
           // If no invetory rows exist, add it to the <tbody>
@@ -602,7 +649,6 @@ setButtonState = function(el) {
         $('#craftAll').removeAttr('disabled');
       }
       else {
-        console.log('disabling');
         $('#craft').prop('disabled', 'disabled');
         $('#craftAll').prop('disabled', 'disabled');
       }
@@ -687,6 +733,12 @@ drawRecipeRequirements = function(el) {
       class: 'recipeDesc'
     }).appendTo($div);
   }
+  
+  $('<p/>', {
+    text: 'Sells for ' + Inventory.getMoneyString(item.sellValue),
+    class: 'recipeSellsFor'
+  }).appendTo($div);
+
 
   if (recipe.forge) {
     var $reqForge = $('<p/>', {
@@ -819,40 +871,64 @@ createTimeString = function(time) {
 }
 
 $(document).ready(function() {
-    $('body')
-      .bind("contextmenu", function(e) { return false; })
-      .attr('unselectable', 'on')
-      .css({
-        MozUserSelect: 'none',
-        KhtmlUserSelect: 'none',
-        WebkitUserSelect: 'none',
-        userSelect: 'none'
-      })
-      .each(function() { 
-        this.onselectstart = function() { return false; };
-    });
+  $('body')
+    .bind("contextmenu", function(e) { return false; })
+    .attr('unselectable', 'on')
+    .css({
+      MozUserSelect: 'none',
+      KhtmlUserSelect: 'none',
+      WebkitUserSelect: 'none',
+      userSelect: 'none'
+    })
+    .each(function() { 
+      this.onselectstart = function() { return false; };
+  });
 
-    game.drawLevel();
-    game.drawRecipes();
-    game.recipeWidth = $('#recipeList li:first').width() - 2 /*border*/;
+  game.drawLevel();
+  game.drawMoney();
+  game.drawRecipes();
+  game.recipeWidth = $('#recipeList li:first').width() - 2 /*border*/;
 
-    $('#experienceBarText').hover(
-      function() {
-        game.experienceShown = true;
-        $(this).text(game.getPlayerExperienceText())
-      },
-      function() {
-        game.experienceShown = false;
-        $(this).text(game.getPlayerLevelText())
-      }
-    );
+  $('#experienceBarText').hover(
+    function() {
+      game.experienceShown = true;
+      $(this).text(game.getPlayerExperienceText())
+    },
+    function() {
+      game.experienceShown = false;
+      $(this).text(game.getPlayerLevelText())
+    }
+  );
 
-    $('#durability').hide();
-    $('#gatherLink').click(function(e) { e.preventDefault(); });
+  $('#durability').hide();
+  $('#gatherLink').click(function(e) { e.preventDefault(); });
+    
+  $('#keepHelp').click(function(e)
+  {
+    e.preventDefault();
+    var left = $(this).position().left;
+    var top = $(this).position().top + 20;
+
+    $('#keepHelpTooltip').css('left', left).css('top', top).show();
+  });
+  
+  $('#keepHelpClose').click(function(e)
+  {
+    e.preventDefault();
+    $('#keepHelpTooltip').hide();
+    $('#keepHelp').hide();
+  });
+  
+  $('#sellAll').click(function(e)
+  {
+    e.preventDefault();
+    game.player.sellAllItems();
+    game.updateUI();
+  });
 });
 
 $(document).keypress(function(e) {
-  if ($('#craftAmount').is(":focus")) {
+  if ($('#craftAmount').is(':focus') || $('.keep').is(':focus')) {
     return;
   }
 
