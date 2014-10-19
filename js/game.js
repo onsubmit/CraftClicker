@@ -567,7 +567,7 @@ Game.prototype.drawInventory = function() {
                     var invItem = inv.items[prop];
                     invItem.keep = parseInt(val);
                     
-                    if (invItem.keep < invItem.amount) {
+                    if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
                       p.sellItem(invItem.Item, invItem.amount - invItem.keep);
                       invItem.amount = invItem.keep;
                       g.updateUI();
