@@ -521,62 +521,90 @@ Game.prototype.drawInventory = function() {
           var $newRow = $('<tr/>', 
           {
             id: 'ir_' + id
-          }).append(
+          });
+          
+          if (Items[id]) {
+            $newRow.append(
+              $('<td/>',
+              {
+                class: 'alignRight'
+              }).append(
+                $('<a/>',
+                {
+                  id: 'in_' + id,
+                  text: prop,
+                  href: '#',
+                  class: 'darkLink'
+                }).on(
+                  "click",
+                  function() {
+                    var thisId = $(this).prop('id').replace('in_', '');
+                    selectRecipe($('#r_' + thisId));
+                  }
+                )
+              )
+            );
+          }
+          else {
+            $newRow.append(
               $('<td/>',
               {
                 id: 'in_' + id,
                 text: prop,
                 class: 'alignRight'
-              })
-            )
-            .append(
-              $('<td/>',
+              }));
+          }
+          
+          $newRow.append(
+            $('<td/>',
+            {
+              id: 'iv_' + id,
+              text: amount
+            })
+          )
+          .append(
+            $('<td/>').append(
+              $('<span/>',
               {
-                id: 'iv_' + id,
-                text: amount
-              })
+                id: 'ik_' + id,
+                text: '\u221E'
+              }).on('click',
+              function() {
+                var thisId = $(this).prop('id').replace('ik_', '');
+                $('#ik_' + thisId).hide();
+                $('#iktb_' + thisId).show().focus();
+              }
             )
-            .append(
-              $('<td/>').append(
-                $('<span/>',
-                {
-                  id: 'ik_' + id,
-                  text: '\u221E'
-                }).on('click',
+            ).append(
+             $('<input/>',
+              {
+                id: 'iktb_' + id,
+                class: 'keep',
+              })
+              .on('keypress', function() {
+                return event.charCode >= 48 && event.charCode <= 57;
+              })
+              .blur(
                 function() {
-                  $('#ik_' + id).hide();
-                  $('#iktb_' + id).show().focus();
+                  var thisId = $(this).prop('id').replace('iktb_', '');
+                  var val = $(this).val();
+                  var val = (val == '' ? -1 : val);
+                  $('#ik_' + thisId).text(val >= 0 ? val : '\u221E').show();
+                  $(this).hide();
+                  
+                  var invItem = inv.items[prop];
+                  invItem.keep = parseInt(val);
+                  
+                  if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
+                    p.sellItem(invItem.Item, invItem.amount - invItem.keep);
+                    invItem.amount = invItem.keep;
+                    g.updateUI();
+                  }
                 }
               )
-              ).append(
-               $('<input/>',
-                {
-                  id: 'iktb_' + id,
-                  class: 'keep',
-                })
-                .on('keypress', function() {
-                  return event.charCode >= 48 && event.charCode <= 57;
-                })
-                .blur(
-                  function() {
-                    var val = $(this).val();
-                    var val = (val == '' ? -1 : val);
-                    $('#ik_' + id).text(val >= 0 ? val : '\u221E').show();
-                    $(this).hide();
-                    
-                    var invItem = inv.items[prop];
-                    invItem.keep = parseInt(val);
-                    
-                    if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
-                      p.sellItem(invItem.Item, invItem.amount - invItem.keep);
-                      invItem.amount = invItem.keep;
-                      g.updateUI();
-                    }
-                  }
-                )
-                .hide()
-              )
-            );
+              .hide()
+            )
+          );
 
           // If no invetory rows exist, add it to the <tbody>
           var $tbody = $('#inventoryTable tbody');
@@ -887,7 +915,7 @@ $(document).ready(function() {
   game.drawLevel();
   game.drawMoney();
   game.drawRecipes();
-  game.recipeWidth = $('#recipeList li:first').width() - 2 /*border*/;
+  game.recipeWidth = 260;
 
   $('#experienceBarText').hover(
     function() {

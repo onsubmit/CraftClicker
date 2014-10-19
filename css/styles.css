@@ -242,11 +242,11 @@ div#gatherActions {
   margin-bottom: 10px;
 }
 
-div#gatherActions a:link, a#sellAll:link, div#gatherActions a:visited, a#sellAll:visited{
+a.darkLink:link, a.darkLink:visited{
   color: #000;
 }
 
-div#gatherActions a:hover, a#sellAll:hover, div#gatherActions a:active, a#sellAll:active {
+a.darkLink:hover, a.darkLink:active {
   color: #666;
 }
 
