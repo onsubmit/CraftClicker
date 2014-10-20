@@ -73,7 +73,7 @@ ul#recipeList li {
   padding: 4px;
   white-space: nowrap;
   overflow: visible !important; /* jQuery's animate forces overflow: hidden; */
-  text-shadow: 2px 2px #000;
+  text-shadow: 1px 1px #000;
   margin-bottom: 1px;
 }
 

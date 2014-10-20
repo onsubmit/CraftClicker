@@ -4,10 +4,10 @@ function Game()
   this.craftingNode = null;
   this.craftingQueue = [];
   this.player = new Player();
-  
   //                        Grey    Green      Yellow     Orange
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
-  //setInterval(this.updateUI, 500);
+  this.autoSaveId = -1;
+  this.recipeWidth = 260;
 }
 
 Game.prototype.updateUI = function() {
@@ -17,6 +17,67 @@ Game.prototype.updateUI = function() {
   g.drawMoney();
   g.drawInventory();
   g.drawRecipes();
+}
+
+Game.prototype.save = function() {
+  localStorage['CraftClicker_game'] = btoa(JSON.stringify(window.game));
+  localStorage['CraftClicker_items'] = btoa(JSON.stringify(Items));
+}
+
+Game.prototype.reset = function() {
+  if (confirm('Reset everything?')) {
+    localStorage.removeItem('CraftClicker_game');
+    localStorage.removeItem('CraftClicker_items');
+    window.location.reload()
+  }
+}
+
+Game.prototype.load = function(prompt) {
+  if (prompt && !confirm('Load save state?')) {
+    return;
+  }
+
+  var g = window.game;
+  var p = g.player;
+  
+  var lsG = localStorage['CraftClicker_game'];
+  var lsI = localStorage['CraftClicker_items'];
+  if (!lsG || !lsI) {
+    return;
+  }
+  
+  var G = JSON.parse(atob(lsG));
+  var I = JSON.parse(atob(lsI));
+
+  // TODO: There has to be a better way to do this.
+  for (var gProp in G) {
+    if (gProp == 'player') {
+      for(var pProp in G.player) {
+        if (pProp == 'inventory') {
+          for (var i in G.player.inventory) {
+            g.player.inventory[i] = G.player.inventory[i];
+          }
+        }
+        else {
+          g.player[pProp] = G.player[pProp];
+        }
+      }
+    }
+    else {
+      g[gProp] = G[gProp];
+    }
+  }
+  
+  for (var iProp in I) {
+    if (Items[iProp].Recipe) {
+      Items[iProp].Recipe.level = I[iProp].Recipe.level;
+      Items[iProp].Recipe.available = I[iProp].Recipe.available;
+    }
+  }
+  
+  g.updateUI();
+  g.drawPick(true);
+  p.inventory.drawForges();
 }
 
 Game.prototype.step = function() {
@@ -50,13 +111,14 @@ Game.prototype.gather = function() {
       }
     }
   }
-
+  
+  var newPick = false;
   if (pick) {
     pick.durability -= 1;
     if (pick.durability == 0) {
       // The pick just broke.
       // Replace it with the highest level pick in the the player's inventory.
-      var newPick = this.player.inventory.getHighestLevelPick();
+      newPick = this.player.inventory.getHighestLevelPick();
 
       if (newPick) {
         this.player.inventory.items[newPick.name].amount -= 1;
@@ -84,8 +146,31 @@ Game.prototype.gather = function() {
       $('#durability').show().width(width).css('background-color', rgb);
     }
   }
-
+  
+  this.drawPick(newPick);
   return drops;
+}
+
+Game.prototype.drawPick = function(newPick) {
+  var pick = this.player.inventory.pick;
+  if (pick) {
+    // The pick is not broken.
+    var maxWidth = 40;
+    var width = maxWidth * pick.durability / pick.maxDurability;
+    var red = Math.floor(255 * (1 - width / maxWidth));
+    var green = Math.floor(192 * (width / maxWidth));
+    var rgb = 'rgb(' + red + ', ' + green + ', 0)';
+    $('#durability').show().width(width).css('background-color', rgb);
+    
+    if (newPick) {
+      $('#gather').prop('src', pick.image);
+      $('#currentPick').text(pick.name);
+    }
+  }
+  else {
+    $('#currentPick').text('Bare Hands');
+    $('#gather').prop('src', 'images/pick-disabled.png');
+  }
 }
 
 Game.prototype.craft = function(amount, itemLevel) {
@@ -358,7 +443,7 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
     "linear",
     function() {    
       // Recipes that take longer to craft result in more XP.
-      var xpModifier = Math.min(1, recipe.craftTime / 5.0);
+      var xpModifier = Math.max(1, recipe.craftTime / 5.0);
       p.craft(requiredRecipe, xpModifier);
       g.updateUI();
       drawCurrentRecipeRequirements();
@@ -513,124 +598,124 @@ Game.prototype.drawInventory = function() {
       var id = prop.replace(/ /g, '')
       var value = $('#iv_' + id);
       if (value.length) {
-        $('#inventory').show();
         value.text(amount);
       }
       else {
-        if (amount > 0) {
-          var $newRow = $('<tr/>', 
-          {
-            id: 'ir_' + id
-          });
-          
-          if (Items[id]) {
-            $newRow.append(
-              $('<td/>',
-              {
-                class: 'alignRight'
-              }).append(
-                $('<a/>',
-                {
-                  id: 'in_' + id,
-                  text: prop,
-                  href: '#',
-                  class: 'darkLink'
-                }).on(
-                  "click",
-                  function() {
-                    var thisId = $(this).prop('id').replace('in_', '');
-                    selectRecipe($('#r_' + thisId));
-                  }
-                )
-              )
-            );
-          }
-          else {
-            $newRow.append(
-              $('<td/>',
-              {
-                id: 'in_' + id,
-                text: prop,
-                class: 'alignRight'
-              }));
-          }
-          
+        var $newRow = $('<tr/>', 
+        {
+          id: 'ir_' + id
+        });
+        
+        if (Items[id]) {
           $newRow.append(
             $('<td/>',
             {
-              id: 'iv_' + id,
-              text: amount
-            })
-          )
-          .append(
-            $('<td/>').append(
-              $('<span/>',
+              class: 'alignRight'
+            }).append(
+              $('<a/>',
               {
-                id: 'ik_' + id,
-                text: '\u221E'
-              }).on('click',
-              function() {
-                var thisId = $(this).prop('id').replace('ik_', '');
-                $('#ik_' + thisId).hide();
-                $('#iktb_' + thisId).show().focus();
-              }
-            )
-            ).append(
-             $('<input/>',
-              {
-                id: 'iktb_' + id,
-                class: 'keep',
-              })
-              .on('keypress', function() {
-                return event.charCode >= 48 && event.charCode <= 57;
-              })
-              .blur(
-                function() {
-                  var thisId = $(this).prop('id').replace('iktb_', '');
-                  var val = $(this).val();
-                  var val = (val == '' ? -1 : val);
-                  $('#ik_' + thisId).text(val >= 0 ? val : '\u221E').show();
-                  $(this).hide();
-                  
-                  var invItem = inv.items[prop];
-                  invItem.keep = parseInt(val);
-                  
-                  if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
-                    p.sellItem(invItem.Item, invItem.amount - invItem.keep);
-                    invItem.amount = invItem.keep;
-                    g.updateUI();
-                  }
+                id: 'in_' + id,
+                text: prop,
+                href: '#',
+                class: 'darkLink'
+              }).on(
+                "click",
+                { thisId: id },
+                function(e) {
+                  selectRecipe($('#r_' + e.data.thisId));
                 }
               )
-              .hide()
             )
           );
-
-          // If no invetory rows exist, add it to the <tbody>
-          var $tbody = $('#inventoryTable tbody');
-          var $rows = $('#inventoryTable td[id*=in]');
-          if (!$rows.length) {
-            $tbody.append($newRow);
-            return;
-          }
-
-          // Keep the table sorted.
-          // Find the first row whose name is alphatetically greater than the new name
-          var $row = null;
-          $('#inventoryTable td[id*=in]').each(function() {
-            if ($(this).text().localeCompare(prop) == 1) {
-              $row = $(this).parent();
-              return false;
+        }
+        else {
+          $newRow.append(
+            $('<td/>',
+            {
+              id: 'in_' + id,
+              text: prop,
+              class: 'alignRight'
+            }));
+        }
+        
+        var invItem = inv.items[prop];
+        
+        $newRow.append(
+          $('<td/>',
+          {
+            id: 'iv_' + id,
+            text: amount
+          })
+        )
+        .append(
+          $('<td/>').append(
+            $('<span/>',
+            {
+              id: 'ik_' + id,
+              text: invItem.keep || '\u221E'
+            }).on('click',
+            { thisId: id },
+            function(e) {
+              $('#ik_' + e.data.thisId).hide();
+              $('#iktb_' + e.data.thisId).show().focus();
             }
-          });
+          )
+          ).append(
+           $('<input/>',
+            {
+              id: 'iktb_' + id,
+              class: 'keep',
+            })
+            .on('keypress', function() {
+              return event.charCode >= 48 && event.charCode <= 57;
+            })
+            .blur(
+              { thisId: id, thisProp: prop },
+              function(e) {
+                var val = $(this).val();
+                var val = (val == '' ? -1 : val);
+                $('#ik_' + e.data.thisId).text(val >= 0 ? val : '\u221E').show();
+                $(this).hide();
+                
+                var invItem = inv.items[e.data.thisProp];
+                invItem.keep = parseInt(val);
+                
+                if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
+                  p.sellItem(invItem.Item, invItem.amount - invItem.keep);
+                  invItem.amount = invItem.keep;
+                  g.updateUI();
+                }
+              }
+            )
+            .hide()
+          )
+        );
 
-          if ($row) {
-            $row.before($newRow);
+        // If no inventory rows exist, add it to the <tbody>
+        var $tbody = $('#inventoryTable tbody');
+        var $rows = $('#inventoryTable td[id*=in]');
+        if (!$rows.length) {
+          $tbody.append($newRow);
+          $('#inventory').show();
+          continue;
+        }
+
+        // Keep the table sorted.
+        // Find the first row whose name is alphatetically greater than the new name
+        var $row = null;
+        $('#inventoryTable td[id*=in]').each(function() {
+          if ($(this).text().localeCompare(prop) == 1) {
+            $row = $(this).parent();
+            return false;
           }
-          else {
-            // No row found, put it at the end
-            $('#inventoryTable tbody tr:last').after($newRow);
-          }
+        });
+
+        if ($row) {
+          $row.before($newRow);
+        }
+        else {
+          // No row found, put it at the end
+          $('#inventoryTable tbody tr:last').after($newRow);
         }
       }
     }
@@ -838,10 +923,13 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
         id: 'rrn_' + reqId,
         text: req.resource.name,
         href: "#",
-      }).click(function()
-      {
-        selectRecipe($('#r_' + $(this).prop('id').replace('rrn_', '')));
-      }).appendTo($name);
+      }).click(
+        { thisId: reqId },
+        function(e)
+        {
+          var thisId = e.data.thisId;
+          selectRecipe($('#r_' + thisId));
+        }).appendTo($name);
     }
     else {
       $('<span/>',
@@ -915,7 +1003,6 @@ $(document).ready(function() {
   game.drawLevel();
   game.drawMoney();
   game.drawRecipes();
-  game.recipeWidth = 260;
 
   $('#experienceBarText').hover(
     function() {
@@ -953,6 +1040,22 @@ $(document).ready(function() {
     game.player.sellAllItems();
     game.updateUI();
   });
+  
+  $('#save').click(function() { game.save(); });
+  $('#load').click(function() { game.load(true); });
+  $('#reset').click(function() { game.reset(); });
+  $('#autosave').change(function() {
+    var isChecked = $(this).is(':checked');
+    if (isChecked) {
+      game.save();
+      game.autoSaveId = setInterval(game.save, 10000);
+    }
+    else if (game.autoSaveId >= 0) {
+      clearInterval(game.autoSaveId);
+    }
+  });
+  
+  game.load();
 });
 
 $(document).keypress(function(e) {

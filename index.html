@@ -10,6 +10,11 @@
     <link type="text/css" href="css/styles.css" rel="stylesheet"  />
   </head>
   <body>
+    <div class="floatRight">
+      <button id="save">Save</button>
+      <button id="load">Load</button>
+      <p style="text-align: right; margin-top: 10px;"><input id="autosave" type="checkbox" /><label for="autosave">Autosave</label></p>
+    </div>
     <div id="container">
       <div class="floatLeft">
         <div id="gatherActions">
@@ -94,6 +99,9 @@
         <p>'a': Craft all of selected recipe</p>
         <p>'1-9': Craft <i>n</i> of selected</p>
       </div>
+    </div>
+    <div class="floatRight">
+      <button id="reset">Reset</button>
     </div>
   </body>
 </html>
