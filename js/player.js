@@ -140,7 +140,7 @@ Player.prototype.collect = function(drops) {
 }
 
 Player.prototype.getCraftableAmount = function(recipe) {
-  return this.inventory.getCraftableAmount(recipe, false);
+  return this.inventory.getCraftableAmount(recipe);
 }
 
 Player.prototype.getCraftableAmountFromInventory = function(recipe) {

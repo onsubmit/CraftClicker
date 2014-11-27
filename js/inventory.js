@@ -181,11 +181,46 @@ Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
   }
 }
 
-Inventory.prototype.getCraftableAmountFromInventory = function(recipe) {
-  return this.getCraftableAmount(recipe, true /* onlyLookInInventory */);
+Inventory.prototype.getCraftableAmountFromInventory = function(recipe, modifiedInventory) {
+  var minAmount = -1;
+  for (var i = 0; i < recipe.Requirements.length; i++) {
+    var req = recipe.Requirements[i];
+    var currentAmount = 0;
+    
+    if (this.items[req.resource.name]) {
+      if (modifiedInventory) {
+        if (!modifiedInventory[req.resource.name] && modifiedInventory[req.resource.name] != 0) {
+          modifiedInventory[req.resource.name] = this.items[req.resource.name].amount;
+        }
+        
+        currentAmount = modifiedInventory[req.resource.name];
+      }
+      else {
+        currentAmount = this.items[req.resource.name].amount;
+      }
+    }
+
+    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
+    if (isForge) {
+      var forgeLevel = req.resource.level;
+      for (var j = 0; j < this.forges.length; j++) {
+        if (this.forges[j].level == forgeLevel && !forge.reserved) {
+          currentAmount++;
+        }
+      }
+    }
+
+    var amount = Math.floor(currentAmount / req.amount);
+    minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
+    if (minAmount == 0) {
+      return 0;
+    }
+  }
+  
+  return minAmount;
 }
 
-Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
+Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, maxAmountToCraft) {
   if (recipe.forge) {
     // Player must have an active forge capable of smelting the ore.
     var forgeLevel = recipe.forge.level;
@@ -194,46 +229,84 @@ Inventory.prototype.getCraftableAmount = function(recipe, onlyLookInInventory) {
     }
   }
 
-  var minAmount = -1;
-  if (onlyLookInInventory) {
+  // First, determine how many items can be immediately crafted from the current inventory alone.
+  var craftableAmount = this.getCraftableAmountFromInventory(recipe, modifiedInventory, maxAmountToCraft);
+  
+  // Next, determine what the player's inventory would be if they were to craft as many as possible
+  // using only resources currently in their inventory.
+  modifiedInventory = modifiedInventory || {};
+  var amountToCraft = maxAmountToCraft ? maxAmountToCraft : craftableAmount;
+  for (var i = 0; i < recipe.Requirements.length; i++) {
+    var currentAmount = 0;
+    var req = recipe.Requirements[i];
+    
+    if (this.items[req.resource.name]) {
+      // Calculate what would be the remaining inventory after crafting from the current inventory alone.      
+      if (modifiedInventory[req.resource.name] >= 0) {
+        currentAmount = modifiedInventory[req.resource.name] = modifiedInventory[req.resource.name] - amountToCraft * req.amount;
+      }
+      else {
+        currentAmount = modifiedInventory[req.resource.name] = this.items[req.resource.name].amount - amountToCraft * req.amount;
+      }
+    }
+    else {
+      currentAmount = modifiedInventory[req.resource.name] = 0;
+    }
+    
+    if (req.amount > currentAmount) {
+      // In the leftover inventory, there isn't enough to craft one of the desired recipe.
+      if (!req.resource.Recipe) {
+        // If this is a raw resource, we're boned.
+        return craftableAmount;
+      }
+    }
+  }
+  
+  if (maxAmountToCraft && craftableAmount >= maxAmountToCraft) {
+    // The player has the necessary resources in their current inventory to craft the required number.
+    return maxAmountToCraft;
+  }
+  
+  // Next, chip away at the requirements until one of them cannot be met.
+  while (true) {
     for (var i = 0; i < recipe.Requirements.length; i++) {
       var req = recipe.Requirements[i];
-      var currentAmount = 0;
-      if (this.items[req.resource.name]) {
-        currentAmount = this.items[req.resource.name].amount;
+      var multiplier = maxAmountToCraft ? maxAmountToCraft : 1;
+      var haveAmount = modifiedInventory[req.resource.name];
+      var needAmount = multiplier * req.amount;
+      
+      if (haveAmount >= needAmount) {
+        // The player has enough to fulfill the requirement.
+        // Remove the resources from the available inventory.
+        modifiedInventory[req.resource.name] -= needAmount;        
       }
-
-      var isForge = req.resource.type && req.resource.type == ItemType.Forge;
-      if (isForge) {
-        var forgeLevel = req.resource.level;
-        for (var j = 0; j < this.forges.length; j++) {
-          if (this.forges[j].level == forgeLevel && !forge.reserved) {
-            currentAmount++;
-          }
+      else {
+        // The player does not have enough to fulfill the requirement.
+        if (!req.resource.Recipe) {
+          // This requirement is a raw resource, of which the player does not have enough. Return.
+          return craftableAmount;
         }
-      }
-
-      var amount = Math.floor(currentAmount / req.amount);
-      minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
-      if (minAmount == 0) {
-        break;
-      }
-    }
-  }
-  else {
-    var currentResources = this.breakDownInventoryIntoResources(recipe);
-    for (var prop in currentResources) {
-      var currentAmount = currentResources[prop];    
-      var requiredAmount = recipe.TotalRequirements[prop];
-      var amount = Math.floor(currentAmount / requiredAmount);
-      minAmount = minAmount < 0 ? amount : Math.min(amount, minAmount);
-      if (minAmount == 0) {
-        break;
+        
+        // This requirement has its own recipe.
+        // The player may be able to craft it with the resources he/she has in their available inventory.
+        needAmount = needAmount - haveAmount;
+        var reqCraftableAmount = this.getCraftableAmount(req.resource.Recipe, modifiedInventory, needAmount);
+        
+        if (reqCraftableAmount + haveAmount < req.amount) {
+          // The player does not have the necessary resources to craft the requirement. Return.
+          return craftableAmount;
+        }
+        
+        // The player does have the necessary resources to craft the requirement.
+        // Remove the resources from the available inventory.
+        modifiedInventory[req.resource.name] = 0;
+        
       }
     }
+    
+    // The player has enough resources to meet ALL the requirements of the recipe.
+    craftableAmount++;
   }
-
-  return minAmount < 0 ? 0 : minAmount;
 }
 
 Inventory.prototype.drawForges = function() {
@@ -265,62 +338,6 @@ Inventory.prototype.getHighestLevelPick = function() {
   }
 
   return pick;
-}
-
-Inventory.prototype.breakDownInventoryIntoResources = function(recipe) {
-  breakDown = {} ;
-  for (var i = 0; i < recipe.Requirements.length; i++) {
-    // Break each requirement down into its component resources.
-    var req = recipe.Requirements[i];
-
-    // Get the current number of items/resource the player has in their inventory
-    var currentReqAmount = this.getNumberOfItem(req.resource);
-
-    // Includes forges that are in the forge array (not the inventory)
-    var isForge = req.resource.type && req.resource.type == ItemType.Forge;
-    if (isForge) {
-      var forgeLevel = req.resource.level;
-      for (var j = 0; j < this.forges.length; j++) {
-        if (this.forges[j].level == forgeLevel) {
-          currentReqAmount++;
-        }
-      }
-    }
-
-    if (!req.resource.Recipe) {
-      // Resources don't have recipes.
-      if (!breakDown[req.resource.name]) {
-        breakDown[req.resource.name] = currentReqAmount;
-      }
-    }
-    else {
-      if (req.resource.Recipe.forge) {
-        // Player must have an active forge capable of smelting the ore.
-        var forgeLevel = req.resource.Recipe.forge.level;
-        if (!this.forges.some(function(f) { return f.level >= forgeLevel })) {
-          return 0;
-        }
-      }
-
-      // The recipe requirement is an item.
-      // We already know the resource breakdown of this item.
-      for (var prop in req.resource.Recipe.TotalRequirements) {
-        // Example: (# of Sticks in inventory) * (# of Wood needed per Stick)
-        var potentialAmount = currentReqAmount * req.resource.Recipe.TotalRequirements[prop];
-
-        // Example: Add # of Wood in inventory
-        var currentResourceAmount = this.items[prop] ? this.items[prop].amount : 0;
-        if (!breakDown[prop]) {
-          breakDown[prop] = potentialAmount + currentResourceAmount;
-        }
-        else {
-          breakDown[prop] += potentialAmount;
-        }
-      }
-    }
-  }
-
-  return breakDown;
 }
 
 Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
