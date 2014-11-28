@@ -230,7 +230,7 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
   }
 
   // First, determine how many items can be immediately crafted from the current inventory alone.
-  var craftableAmount = this.getCraftableAmountFromInventory(recipe, modifiedInventory, maxAmountToCraft);
+  var craftableAmount = this.getCraftableAmountFromInventory(recipe, modifiedInventory);
   
   // Next, determine what the player's inventory would be if they were to craft as many as possible
   // using only resources currently in their inventory.

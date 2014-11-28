@@ -196,13 +196,19 @@ Game.prototype.craftAll = function() {
 Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
+  var id = item.name.replace(/ /g, '');
+
+  var cancel = false;
+  if (p.getCraftableAmount(item.Recipe) < amount) {
+    cancel = true;
+  }
   
   if (g.craftingNode) {
-    var id = item.name.replace(/ /g, '');
     var $el = $('#r_' + id);
     var craftStatus = $('#rcs_' + id).text();
 
     if (craftStatus == '') {
+      if (cancel) return;
       // Queue up the recipe
       g.craftingQueue.push({ item: item, amount: amount, el: $el });
       $('#rcs_' + id).show().text('Queued');
@@ -214,6 +220,7 @@ Game.prototype.craftRecipe = function(item, amount) {
       // The recipe is already queued. Remove it from the queue.
       $('#rcs_' + id).text('').hide();
       $el.removeClass('queued');
+      if (cancel) return;
       for (var i = 0; i < g.craftingQueue.length; i++) {
         var x = g.craftingQueue[i];
         if (item.name == x.item.name) {
@@ -241,11 +248,20 @@ Game.prototype.craftRecipe = function(item, amount) {
         setButtonState(x.el);
         g.craftRecipe(x.item, x.amount);
       }
+      
       return;
     }
   }
   
-  if (p.getCraftableAmount(item.Recipe) < amount) {
+  if (cancel) {
+    $('#rcs_' + id).hide().text('');
+    if (g.craftingQueue.length > 0) {
+      var x = g.craftingQueue.shift();
+      x.el.removeClass('queued');
+      setButtonState(x.el);
+      g.craftRecipe(x.item, x.amount);
+    }
+    
     return;
   }
   
