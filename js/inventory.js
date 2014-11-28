@@ -235,18 +235,19 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
   // Next, determine what the player's inventory would be if they were to craft as many as possible
   // using only resources currently in their inventory.
   modifiedInventory = modifiedInventory || {};
-  var amountToCraft = maxAmountToCraft ? maxAmountToCraft : craftableAmount;
+  var amountToCraft = maxAmountToCraft ? Math.min(maxAmountToCraft, craftableAmount) : craftableAmount;
   for (var i = 0; i < recipe.Requirements.length; i++) {
     var currentAmount = 0;
     var req = recipe.Requirements[i];
+    var inventoryAmount = this.getNumberOfItem(req.resource);
     
-    if (this.items[req.resource.name]) {
-      // Calculate what would be the remaining inventory after crafting from the current inventory alone.      
+    if (inventoryAmount > 0) {
+      // Calculate what would be the remaining inventory after crafting from the current inventory alone.
       if (modifiedInventory[req.resource.name] >= 0) {
         currentAmount = modifiedInventory[req.resource.name] = modifiedInventory[req.resource.name] - amountToCraft * req.amount;
       }
       else {
-        currentAmount = modifiedInventory[req.resource.name] = this.items[req.resource.name].amount - amountToCraft * req.amount;
+        currentAmount = modifiedInventory[req.resource.name] = inventoryAmount - amountToCraft * req.amount;
       }
     }
     else {
@@ -271,14 +272,13 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
   while (true) {
     for (var i = 0; i < recipe.Requirements.length; i++) {
       var req = recipe.Requirements[i];
-      var multiplier = maxAmountToCraft ? maxAmountToCraft : 1;
       var haveAmount = modifiedInventory[req.resource.name];
-      var needAmount = multiplier * req.amount;
+      var needAmount = req.amount;
       
       if (haveAmount >= needAmount) {
         // The player has enough to fulfill the requirement.
         // Remove the resources from the available inventory.
-        modifiedInventory[req.resource.name] -= needAmount;        
+        modifiedInventory[req.resource.name] -= needAmount;
       }
       else {
         // The player does not have enough to fulfill the requirement.
@@ -289,10 +289,10 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
         
         // This requirement has its own recipe.
         // The player may be able to craft it with the resources he/she has in their available inventory.
-        needAmount = needAmount - haveAmount;
+        needAmount = Math.ceil((needAmount - haveAmount) / req.resource.Recipe.makes);
         var reqCraftableAmount = this.getCraftableAmount(req.resource.Recipe, modifiedInventory, needAmount);
         
-        if (reqCraftableAmount + haveAmount < req.amount) {
+        if (reqCraftableAmount + haveAmount < needAmount) {
           // The player does not have the necessary resources to craft the requirement. Return.
           return craftableAmount;
         }
@@ -300,12 +300,16 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
         // The player does have the necessary resources to craft the requirement.
         // Remove the resources from the available inventory.
         modifiedInventory[req.resource.name] = 0;
-        
       }
     }
     
     // The player has enough resources to meet ALL the requirements of the recipe.
     craftableAmount++;
+    
+    if (maxAmountToCraft && craftableAmount >= maxAmountToCraft) {
+      // The player has the necessary resources in their current inventory to craft the required number.
+      return maxAmountToCraft;
+    }
   }
 }
 
