@@ -29,7 +29,7 @@ determineUnlocks = function(item) {
       item.Recipe.unlockedBy.unlocks = [];
     }
 
-    item.Recipe.unlockedBy.unlocks.push(item.name.replace(/ /g, ''));
+    item.Recipe.unlockedBy.unlocks.push(item.name);
     delete item.Recipe.unlockedBy;
   }
 }
@@ -104,349 +104,332 @@ determineMakes = function(item) {
 
 var Items = {};
 
-Items.Stick = {
-  name: "Stick",
+Items["Stick"] = {
   Recipe: {
     level: 0,
     craftTime: 1,
     available: true,
     Requirements:
     [
-      { resource: Resources.Wood, amount: 2 }
+      { resource: Resources["Wood"], amount: 2 }
     ]
   }
 }
 
-Items.CopperBar = {
-  name: "Copper Bar",
+Items["Copper Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Resources.CopperOre, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Copper Ore"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.IronBar = {
-  name: "Iron Bar",
+Items["Iron Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Resources.IronOre, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Iron Ore"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.TinBar = {
-  name: "Tin Bar",
+Items["Tin Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Resources.TinOre, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Tin Ore"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.GoldBar = {
-  name: "Gold Bar",
+Items["Gold Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Resources.GoldOre, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Gold Ore"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.BronzeBar = {
-  name: "Bronze Bar",
+Items["Bronze Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Items.TinBar, amount: 1 },
-      { resource: Items.CopperBar, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Items["Tin Bar"], amount: 1 },
+      { resource: Items["Copper Bar"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.BronzeRivet = {
-  name: "Bronze Rivet",
+Items["Bronze Rivet"] = {
   Recipe: {
     craftTime: 16,
     makes: 16,
     Requirements:
     [
-      { resource: Items.BronzeBar, amount: 1 },
+      { resource: Items["Bronze Bar"], amount: 1 },
     ]
   }
 }
 
-Items.SteelBar = {
-  name: "Steel Bar",
+Items["Steel Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Items.IronBar, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Items["Iron Bar"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.AluminumBar = {
-  name: "Aluminum Bar",
+Items["Aluminum Bar"] = {
   Recipe: {
     craftTime: 3,
     makes: 2,
     Requirements:
     [
-      { resource: Resources.BauxiteOre, amount: 1 },
-      { resource: Resources.IronOre, amount: 1 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Bauxite Ore"], amount: 1 },
+      { resource: Resources["Iron Ore"], amount: 1 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.AluminumStrips = {
-  name: "Aluminum Strips",
+Items["Aluminum Strips"] = {
   Recipe: {
     craftTime: 8,
     makes: 8,
     Requirements:
     [
-      { resource: Items.AluminumBar, amount: 1 },
+      { resource: Items["Aluminum Bar"], amount: 1 },
     ]
   }
 }
 
-Items.LeadBar = {
-  name: "Lead Bar",
+Items["Lead Bar"] = {
   Recipe: {
     craftTime: 3,
     Requirements:
     [
-      { resource: Resources.LeadOre, amount: 3 },
-      { resource: Resources.Coal, amount: 1 },
+      { resource: Resources["Lead Ore"], amount: 3 },
+      { resource: Resources["Coal"], amount: 1 },
     ]
   }
 }
 
-Items.WoodenPick = {
+Items["Wooden Pick"] = {
   type: ItemType.Pick,
   level: 1,
   durability: 64,
-  name: "Wooden Pick",
   image: 'images/pick-wooden.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Stone and Coal.",
-    unlockedBy: Items.Stick,
+    unlockedBy: Items["Stick"],
     craftTime: 2,
     Requirements:
     [
-      { resource: Items.Stick, amount: 2 },
-      { resource: Resources.Wood, amount: 3 }
+      { resource: Items["Stick"], amount: 2 },
+      { resource: Resources["Wood"], amount: 3 }
     ]
   }
 }
-Items.WoodenPick.LootModifiers[Resources.Coal.name] = 1;
-Items.WoodenPick.LootModifiers[Resources.Stone.name] = 1;
+Items["Wooden Pick"].LootModifiers["Coal"] = 1;
+Items["Wooden Pick"].LootModifiers["Stone"] = 1;
 
-Items.StonePick = {
+Items["Stone Pick"] = {
   type: ItemType.Pick,
-  name: "Stone Pick",
   image: 'images/pick-stone.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Iron and Copper ore.",
-    unlockedBy: Items.WoodenPick,
+    unlockedBy: Items["Wooden Pick"],
     craftTime: 3,
     Requirements:
     [
-        { resource: Items.Stick, amount: 2 },
-        { resource: Resources.Stone, amount: 3 }
+        { resource: Items["Stick"], amount: 2 },
+        { resource: Resources["Stone"], amount: 3 }
     ]
   }
 }
-improvePick(Items.StonePick, Items.WoodenPick);
-Items.StonePick.LootModifiers[Resources.CopperOre.name] = 1;
-Items.StonePick.LootModifiers[Resources.IronOre.name] = 1;
+improvePick(Items["Stone Pick"], Items["Wooden Pick"]);
+Items["Stone Pick"].LootModifiers["Copper Ore"] = 1;
+Items["Stone Pick"].LootModifiers["Iron Ore"] = 1;
 
-Items.CastIronPick = {
+Items["Cast Iron Pick"] = {
   type: ItemType.Pick,
-  name: "Cast Iron Pick",
   image: 'images/pick-cast-iron.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Gold and Tin ore.",
-    unlockedBy: Items.StonePick,
+    unlockedBy: Items["Stone Pick"],
     craftTime: 3,
     Requirements:
     [
-        { resource: Items.Stick, amount: 2 },
-        { resource: Items.IronBar, amount: 3 }
+        { resource: Items["Stick"], amount: 2 },
+        { resource: Items["Iron Bar"], amount: 3 }
     ]
   }
 }
-improvePick(Items.CastIronPick, Items.StonePick);
-Items.CastIronPick.LootModifiers[Resources.TinOre.name] = 1;
-Items.CastIronPick.LootModifiers[Resources.GoldOre.name] = 1;
+improvePick(Items["Cast Iron Pick"], Items["Stone Pick"]);
+Items["Cast Iron Pick"].LootModifiers["Tin Ore"] = 1;
+Items["Cast Iron Pick"].LootModifiers["Gold Ore"] = 1;
 
-Items.GoldPick = {
+Items["Gold Pick"] = {
   type: ItemType.Pick,
-  name: "Gold Pick",
   image: 'images/pick-gold.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Bauxite ore.",
-    unlockedBy: Items.CastIronPick,
+    unlockedBy: Items["Cast Iron Pick"],
     craftTime: 3,
     Requirements:
     [
-        { resource: Items.Stick, amount: 2 },
-        { resource: Items.GoldBar, amount: 3 }
+        { resource: Items["Stick"], amount: 2 },
+        { resource: Items["Gold Bar"], amount: 3 }
     ]
   }
 }
-improvePick(Items.GoldPick, Items.CastIronPick);
-Items.GoldPick.LootModifiers[Resources.BauxiteOre.name] = 1;
+improvePick(Items["Gold Pick"], Items["Cast Iron Pick"]);
+Items["Gold Pick"].LootModifiers["Bauxite Ore"] = 1;
 
-Items.SteelPick = {
+Items["Steel Pick"] = {
   type: ItemType.Pick,
-  name: "Steel Pick",
   image: 'images/pick-steel.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Lead ore.",
-    unlockedBy: Items.GoldPick,
+    unlockedBy: Items["Gold Pick"],
     craftTime: 12,
     Requirements:
     [
-        { resource: Items.Stick, amount: 2 },
-        { resource: Items.SteelBar, amount: 3 },
-        { resource: Items.BronzeRivet, amount: 4 },
-        { resource: Items.AluminumStrips, amount: 8 },
+        { resource: Items["Stick"], amount: 2 },
+        { resource: Items["Steel Bar"], amount: 3 },
+        { resource: Items["Bronze Rivet"], amount: 4 },
+        { resource: Items["Aluminum Strips"], amount: 8 },
     ]
   }
 }
-improvePick(Items.SteelPick, Items.GoldPick);
-Items.SteelPick.LootModifiers[Resources.LeadOre.name] = 1;
+improvePick(Items["Steel Pick"], Items["Gold Pick"]);
+Items["Steel Pick"].LootModifiers["Lead Ore"] = 1;
 
-Items.CopperBar.Recipe.unlockedBy = Items.StonePick;
-Items.IronBar.Recipe.unlockedBy = Items.StonePick;
-Items.TinBar.Recipe.unlockedBy = Items.CastIronPick;
-Items.GoldBar.Recipe.unlockedBy = Items.CastIronPick;
-Items.SteelBar.Recipe.unlockedBy = Items.GoldPick;
-Items.BronzeBar.Recipe.unlockedBy = Items.GoldPick;
-Items.BronzeRivet.Recipe.unlockedBy = Items.GoldPick;
-Items.AluminumBar.Recipe.unlockedBy = Items.GoldPick;
-Items.AluminumStrips.Recipe.unlockedBy = Items.GoldPick;
-Items.LeadBar.Recipe.unlockedBy = Items.SteelPick;
+Items["Copper Bar"].Recipe.unlockedBy = Items["Stone Pick"];
+Items["Iron Bar"].Recipe.unlockedBy = Items["Stone Pick"];
+Items["Tin Bar"].Recipe.unlockedBy = Items["Cast Iron Pick"];
+Items["Gold Bar"].Recipe.unlockedBy = Items["Cast Iron Pick"];
+Items["Steel Bar"].Recipe.unlockedBy = Items["Gold Pick"];
+Items["Bronze Bar"].Recipe.unlockedBy = Items["Gold Pick"];
+Items["Bronze Rivet"].Recipe.unlockedBy = Items["Gold Pick"];
+Items["Aluminum Bar"].Recipe.unlockedBy = Items["Gold Pick"];
+Items["Aluminum Strips"].Recipe.unlockedBy = Items["Gold Pick"];
+Items["Lead Bar"].Recipe.unlockedBy = Items["Steel Pick"];
 
-Items.BasicForge = {
+Items["Basic Forge"] = {
   type: ItemType.Forge,
   level: 1,
-  name: "Basic Forge",
   SmeltModifiers: {},
   Recipe: {
     text: "Smelts Iron and Copper ores.",
-    unlockedBy: Items.WoodenPick,
+    unlockedBy: Items["Wooden Pick"],
     craftTime: 8,
     Requirements:
     [
-      { resource: Resources.Stone, amount: 24 }
+      { resource: Resources["Stone"], amount: 24 }
     ]
   }
 }
-Items.BasicForge.SmeltModifiers[Items.CopperBar.name] = 1;
-Items.BasicForge.SmeltModifiers[Items.IronBar.name] = 1;
+Items["Basic Forge"].SmeltModifiers["Copper Bar"] = 1;
+Items["Basic Forge"].SmeltModifiers["Iron Bar"] = 1;
 
-Items.SturdyForge = {
+Items["Sturdy Forge"] = {
   type: ItemType.Forge,
-  name: "Sturdy Forge",
   SmeltModifiers: {},
   Recipe: {
     text: "Smelts Tin and Gold ores. Smelts lesser ores 50% faster than the Basic Forge.",
-    unlockedBy: Items.StonePick,
+    unlockedBy: Items["Stone Pick"],
     craftTime: 15,
     Requirements:
     [
-      { resource: Items.IronBar, amount: 8 },
-      { resource: Items.CopperBar, amount: 8 },
-      { resource: Items.BasicForge, amount: 1 }
+      { resource: Items["Iron Bar"], amount: 8 },
+      { resource: Items["Copper Bar"], amount: 8 },
+      { resource: Items["Basic Forge"], amount: 1 }
     ]
   }
 }
-improveForge(Items.SturdyForge, Items.BasicForge);
-Items.SturdyForge.SmeltModifiers[Items.GoldBar.name] = 1;
-Items.SturdyForge.SmeltModifiers[Items.TinBar.name] = 1;
+improveForge(Items["Sturdy Forge"], Items["Basic Forge"]);
+Items["Sturdy Forge"].SmeltModifiers["Gold Bar"] = 1;
+Items["Sturdy Forge"].SmeltModifiers["Tin Bar"] = 1;
 
-Items.GreatForge = {
+Items["Great Forge"] = {
   type: ItemType.Forge,
-  name: "Great Forge",
   SmeltModifiers: {},
   Recipe: {
     text: "Smelts Aluminum ore and Bronze and Steel bars. Smelts lesser ores 50% faster than the Sturdy Forge.",
-    unlockedBy: Items.CastIronPick,
+    unlockedBy: Items["Cast Iron Pick"],
     craftTime: 30,
     Requirements:
     [
-      { resource: Items.IronBar, amount: 16 },
-      { resource: Items.CopperBar, amount: 16 },
-      { resource: Items.GoldBar, amount: 8 },
-      { resource: Items.SturdyForge, amount: 1 }
+      { resource: Items["Iron Bar"], amount: 16 },
+      { resource: Items["Copper Bar"], amount: 16 },
+      { resource: Items["Gold Bar"], amount: 8 },
+      { resource: Items["Sturdy Forge"], amount: 1 }
     ]
   }
 }
-improveForge(Items.GreatForge, Items.SturdyForge);
-Items.GreatForge.SmeltModifiers[Items.SteelBar.name] = 1;
-Items.GreatForge.SmeltModifiers[Items.AluminumBar.name] = 1;
-Items.GreatForge.SmeltModifiers[Items.BronzeBar.name] = 1;
+improveForge(Items["Great Forge"], Items["Sturdy Forge"]);
+Items["Great Forge"].SmeltModifiers["Steel Bar"] = 1;
+Items["Great Forge"].SmeltModifiers["Aluminum Bar"] = 1;
+Items["Great Forge"].SmeltModifiers["Bronze Bar"] = 1;
 
-Items.GiantForge = {
+Items["Giant Forge"] = {
   type: ItemType.Forge,
-  name: "Giant Forge",
   SmeltModifiers: {},
   Recipe: {
     text: "Smelts Lead ore. Smelts lesser ores 50% faster than the Great Forge.",
-    unlockedBy: Items.GoldPick,
+    unlockedBy: Items["Gold Pick"],
     craftTime: 60,
     Requirements:
     [
-      { resource: Items.IronBar, amount: 32 },
-      { resource: Items.CopperBar, amount: 32 },
-      { resource: Items.GoldBar, amount: 16 },
-      { resource: Items.BronzeBar, amount: 8 },
-      { resource: Items.AluminumBar, amount: 8 },
-      { resource: Items.SteelBar, amount: 8 },
-      { resource: Items.GreatForge, amount: 1 }
+      { resource: Items["Iron Bar"], amount: 32 },
+      { resource: Items["Copper Bar"], amount: 32 },
+      { resource: Items["Gold Bar"], amount: 16 },
+      { resource: Items["Bronze Bar"], amount: 8 },
+      { resource: Items["Aluminum Bar"], amount: 8 },
+      { resource: Items["Steel Bar"], amount: 8 },
+      { resource: Items["Great Forge"], amount: 1 }
     ]
   }
 }
-improveForge(Items.GiantForge, Items.GreatForge);
-Items.GreatForge.SmeltModifiers[Items.LeadBar.name] = 1;
+improveForge(Items["Giant Forge"], Items["Great Forge"]);
+Items["Great Forge"].SmeltModifiers["Lead Bar"] = 1;
 
-Items.CopperBar.Recipe.forge = Items.BasicForge;
-Items.IronBar.Recipe.forge = Items.BasicForge;
-Items.TinBar.Recipe.forge = Items.SturdyForge;
-Items.GoldBar.Recipe.forge = Items.SturdyForge;
-Items.BronzeBar.Recipe.forge = Items.GreatForge;
-Items.AluminumBar.Recipe.forge = Items.GreatForge;
-Items.SteelBar.Recipe.forge = Items.GreatForge;
-Items.LeadBar.Recipe.forge = Items.GiantForge;
+Items["Copper Bar"].Recipe.forge = Items["Basic Forge"];
+Items["Iron Bar"].Recipe.forge = Items["Basic Forge"];
+Items["Tin Bar"].Recipe.forge = Items["Sturdy Forge"];
+Items["Gold Bar"].Recipe.forge = Items["Sturdy Forge"];
+Items["Bronze Bar"].Recipe.forge = Items["Great Forge"];
+Items["Aluminum Bar"].Recipe.forge = Items["Great Forge"];
+Items["Steel Bar"].Recipe.forge = Items["Great Forge"];
+Items["Lead Bar"].Recipe.forge = Items["Giant Forge"];
 
 for (var prop in Items) {
   if (Items.hasOwnProperty(prop)) {
     var item = Items[prop];
+    item.name = prop;
+    item.id = item.name.replace(/ /g, '');
+    
     determineUnlocks(item);
     determineTotalRequirements(item);
     determineSellValue(item);

@@ -92,7 +92,7 @@ Game.prototype.gather = function() {
   for (var prop in Resources) {
     if(Resources.hasOwnProperty(prop)) {
       var item = Resources[prop];
-      var lootModifier = (item == Resources.Wood ? 1 : 0);
+      var lootModifier = (item == Resources["Wood"] ? 1 : 0);
       if (pick) {
         lootModifier = (typeof pick.LootModifiers[item.name] == "undefined" ? lootModifier : pick.LootModifiers[item.name]);
       }
@@ -196,7 +196,7 @@ Game.prototype.craftAll = function() {
 Game.prototype.craftRecipe = function(item, amount) {
   var g = window.game;
   var p = g.player;
-  var id = item.name.replace(/ /g, '');
+  var id = item.id;
 
   var cancel = false;
   if (p.getCraftableAmount(item.Recipe) < amount) {
@@ -298,7 +298,7 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
   // Release the reserved resources back into the inventory
   for (var prop in node.reserved) {
     var amount = node.reserved[prop];
-    var name = prop.replace(/ /g, '');
+    var name = prop;
     var releasedItem = Items[name]; // Will be undefined if raw resource.
     
     var isForge = releasedItem && releasedItem.type && releasedItem.type == ItemType.Forge;
@@ -324,7 +324,7 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
     }
   }
   
-  var id = item.name.replace(/ /g, '');
+  var id = item.id;
   var $el = $('#r_' + id);
   
   if ($el.hasClass('animating')) {
@@ -364,7 +364,7 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
   var p = g.player;
   
   var req = node.item;
-  var id = req.name.replace(/ /g, '');
+  var id = req.id;
   var $reqEl = $('#r_' + id);
   if (!$reqEl.hasClass('selectedRecipe')) {
     highlightRecipe($reqEl);
@@ -439,14 +439,14 @@ Game.prototype.showCraftingAnimation = function(requiredRecipe, el, doneCallback
   // Switch the Craft button to say Cancel
   $('#craft').val('Cancel');
 
-  var id = item.name.replace(/ /g, '');
+  var id = item.id;
   $('#rcs_' + id).show().text('Crafting ' + amount);
   
   recipe.crafting = true;
   var parent = requiredRecipe.parent;
   while(parent) {
     parent.item.Recipe.crafting = true;
-    var parentId = parent.item.name.replace(/ /g, '');
+    var parentId = parent.item.id;
     $('#rcs_' + parentId).show().text('Waiting');
     $('#r_' + parentId).addClass('animating');
     parent = parent.parent;
@@ -522,7 +522,7 @@ Game.prototype.drawRecipes = function() {
       var recipe = item.Recipe;
       if (recipe.available) {
         var amount = p.getCraftableAmount(recipe);
-        var id = prop.replace(/ /g, '');
+        var id = item.id;
         var $row = $('#r_' + id);
         if ($row.length) {
           // Row for recipe already exists.
@@ -611,7 +611,7 @@ Game.prototype.drawInventory = function() {
   for (var prop in inv.items) {
     if(inv.items.hasOwnProperty(prop)) {
       var amount = inv.getNumberOfItemFromInventory(prop);
-      var id = prop.replace(/ /g, '')
+      var id = inv.items[prop].Item.id;
       var value = $('#iv_' + id);
       if (value.length) {
         value.text(amount);
@@ -622,7 +622,7 @@ Game.prototype.drawInventory = function() {
           id: 'ir_' + id
         });
         
-        if (Items[id]) {
+        if (Items[prop]) {
           $newRow.append(
             $('<td/>',
             {
@@ -820,7 +820,7 @@ drawRecipeRequirements = function(el) {
   var $div = $('#recipeRequirements');
   var item = el.data();
   var recipe = item.Recipe;
-  var id = item.name.replace(/ /g, '')
+  var id = item.id;
 
   $div.empty();
 
@@ -875,7 +875,7 @@ drawRecipeRequirements = function(el) {
       text: 'Requires '
     });
 
-    var forgeId = recipe.forge.name.replace(/ /g, '');    
+    var forgeId = recipe.forge.id;    
     $('<a/>',
     {
       text: recipe.forge.name,
@@ -933,7 +933,7 @@ drawRecipeRequirementsTable = function(recipe, p, id) {
     var $name = $('<td/>');
 
     if (req.resource.Recipe) {
-      var reqId = req.resource.name.replace(/ /g, '')
+      var reqId = req.resource.id;
       $('<a/>',
       {
         id: 'rrn_' + reqId,

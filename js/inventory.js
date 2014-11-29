@@ -155,10 +155,9 @@ Inventory.prototype.mergeItemByName = function(name, amount) {
   }
   else {
     this.size++;
-    var itemName = name.replace(/ /g, '');
     this.items[name] = 
     {
-      Item: Items[itemName] || Resources[itemName],
+      Item: Items[name] || Resources[name],
       amount: amount
     };
   }
