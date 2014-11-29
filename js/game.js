@@ -824,11 +824,19 @@ drawRecipeRequirements = function(el) {
 
   $div.empty();
 
-  $('<h2/>', {
-    id: 'recipeName',
-    text: item.name,
-  }).appendTo($div);
+  var $header = $('<h2/>', {
+    id: 'recipeName'
+  });
 
+  if (recipe.makes > 1) {
+    $header.text(item.name + ' (' + recipe.makes + ')');
+  }
+  else {
+    $header.text(item.name);
+  }
+  
+  $header.appendTo($div);
+  
   $('<h4/>', {
     id: 'craftTime',
     text: 'Craft time: ' + createTimeString(recipe.craftTime),

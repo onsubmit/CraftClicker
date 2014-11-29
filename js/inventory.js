@@ -121,6 +121,16 @@ Inventory.prototype.craft = function(requiredRecipe) {
     // Put the item into the inventory.
     // The item could be a forge if the forge array was full.
     this.mergeItem(item, makes);
+    
+    // Some recipes craft more than that was required.
+    // Put any extra from the reserver into the inventory.
+    for (var prop in requiredRecipe.reserved) {
+      var remainingReserved = requiredRecipe.reserved[prop];
+      if (remainingReserved > 0) {
+        this.mergeItemByName(prop, remainingReserved);
+      }
+    }
+    
     return 0;
     }
   }
