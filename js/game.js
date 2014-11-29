@@ -390,7 +390,7 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
         g.craftingNode = null;
         
         // Some recipes craft more than that was required.
-        // Put any extra from the reserver into the inventory.
+        // Put any extra from the reserve into the inventory.
         for (var prop in node.reserved) {
           var remainingReserved = node.reserved[prop];
           if (remainingReserved > 0) {
@@ -1088,6 +1088,7 @@ $(document).ready(function() {
     }
   });
   
+  game.autoSaveId = setInterval(game.save, 10000);
   game.load();
 });
 
