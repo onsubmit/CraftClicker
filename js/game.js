@@ -389,6 +389,15 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
         // Nothing left to craft.
         g.craftingNode = null;
         
+        // Some recipes craft more than that was required.
+        // Put any extra from the reserver into the inventory.
+        for (var prop in node.reserved) {
+          var remainingReserved = node.reserved[prop];
+          if (remainingReserved > 0) {
+            p.inventory.mergeItemByName(prop, remainingReserved);
+          }
+        }
+        
         if (g.craftingQueue.length > 0) {
           var x = g.craftingQueue.shift();
           x.el.removeClass('queued');
