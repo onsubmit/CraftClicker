@@ -203,7 +203,7 @@ Inventory.prototype.getCraftableAmountFromInventory = function(recipe, modifiedI
     if (isForge) {
       var forgeLevel = req.resource.level;
       for (var j = 0; j < this.forges.length; j++) {
-        if (this.forges[j].level == forgeLevel && !forge.reserved) {
+        if (this.forges[j].level == forgeLevel && !this.forges[j].reserved) {
           currentAmount++;
         }
       }
