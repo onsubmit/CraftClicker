@@ -47,10 +47,41 @@ table#inventoryTable td, table#inventoryTable th {
   padding: 5px;
 }
 
+div#recipeFilters {
+  padding: 4px;
+  color: #aaa;
+  font-size: 0.8em;
+}
+
+input#recipeSearch {
+  height: 1.4em;
+  color: #aaa;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px inset #666;
+  width: 100%;
+}
+
+select#recipeCategoryFilter {
+  font-family: georgia, arial, helvetica, sans-serif;
+  height: 1.4em;
+  color: #aaa;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px inset #666;
+  margin-top: 4px;
+}
+
+select#recipeCategoryFilter option {
+  background-color: #111;
+}
+
+input#haveResources {
+  vertical-align: bottom;
+}
+
 div#recipes {
   float: left;
   margin: 0 30px 30px 0;
-  width: 270px;
+  width: 290px;
   border: 1px solid #999;
   background: url('../images/bg.png');
   box-shadow: 0px 0px 5px #999;
@@ -60,38 +91,52 @@ div#recipeScroll {
   height: 300px;
   overflow-y: auto;
   overflow-x: hidden;
+  clear: both;
 }
 
-ul#recipeList {
+ul#recipeCategories {
   cursor: default;
   list-style-type: none;
   margin: 0;
   padding: 8px 0 8px 0;
 }
 
-ul#recipeList li {
-  padding: 4px;
+ul#recipeCategories > li > span {
+  font-weight: bold;
+  color: #fff;
+  padding-left: 4px;
+}
+
+ul.recipeCategory {
+  cursor: default;
+  list-style-type: none;
+  margin: 0;
+  padding: 8px 0 8px 0;
+}
+
+ul.recipeCategory li {
+  padding: 4px 4px 4px 8px;
   white-space: nowrap;
   overflow: visible !important; /* jQuery's animate forces overflow: hidden; */
   text-shadow: 1px 1px #000;
   margin-bottom: 1px;
 }
 
-ul#recipeList li span {
+ul.recipeCategory li span {
   margin-left: 4px;
 }
 
-ul#recipeList li div.recipeName {
+ul.recipeCategory li div.recipeName {
   overflow: visible !important;
   width: 260px;
 }
 
-ul#recipeList li.selectedRecipe {
+ul.recipeCategory li.selectedRecipe {
   font-weight: bold;
   border: 1px solid white;
 }
 
-ul#recipeList li.background {
+ul.recipeCategory li.background {
   color: white;
   text-shadow: 1px 1px #000;
 }
@@ -201,7 +246,7 @@ div#actions {
 }
 
 div#actions input[type=button] {
-  width: 80px;
+  width: 90px;
 }
 
 button {
@@ -232,11 +277,11 @@ input#craftAmount {
 }
 
 input#craft {
-  width: 60px;
+  width: 70px;
 }
 
 div#gatherActions {
-  width: 270px;
+  width: 290px;
   background-color: white;
   font-weight: bold;
   margin-bottom: 10px;

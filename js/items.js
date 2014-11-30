@@ -1,6 +1,8 @@
 var ItemType = {
-  Pick : "Pick",
-  Forge: "Forge"
+  Pick : "Picks",
+  Forge: "Forges",
+  Bar: "Bars",
+  Other: "Other"
 }
 
 improveForge = function(newForge, oldForge, multiplier) {
@@ -105,6 +107,7 @@ determineMakes = function(item) {
 var Items = {};
 
 Items["Stick"] = {
+  type: ItemType.Other,
   Recipe: {
     level: 0,
     craftTime: 1,
@@ -117,6 +120,7 @@ Items["Stick"] = {
 }
 
 Items["Copper Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -128,6 +132,7 @@ Items["Copper Bar"] = {
 }
 
 Items["Iron Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -139,6 +144,7 @@ Items["Iron Bar"] = {
 }
 
 Items["Tin Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -150,6 +156,7 @@ Items["Tin Bar"] = {
 }
 
 Items["Gold Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -161,6 +168,7 @@ Items["Gold Bar"] = {
 }
 
 Items["Bronze Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -173,6 +181,7 @@ Items["Bronze Bar"] = {
 }
 
 Items["Bronze Rivet"] = {
+  type: ItemType.Other,
   Recipe: {
     craftTime: 16,
     makes: 16,
@@ -184,6 +193,7 @@ Items["Bronze Rivet"] = {
 }
 
 Items["Steel Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:
@@ -195,6 +205,7 @@ Items["Steel Bar"] = {
 }
 
 Items["Aluminum Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     makes: 2,
@@ -208,6 +219,7 @@ Items["Aluminum Bar"] = {
 }
 
 Items["Aluminum Strips"] = {
+  type: ItemType.Other,
   Recipe: {
     craftTime: 8,
     makes: 8,
@@ -219,6 +231,7 @@ Items["Aluminum Strips"] = {
 }
 
 Items["Lead Bar"] = {
+  type: ItemType.Bar,
   Recipe: {
     craftTime: 3,
     Requirements:

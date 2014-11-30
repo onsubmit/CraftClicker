@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>CraftClicker 1.34 beta</title>
+    <title>CraftClicker 1.35 beta</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
@@ -33,8 +33,15 @@
             </div>
           </div>
           <div id="money"></div>
+          <div id="recipeFilters">
+            <select id="recipeCategoryFilter" onchange="game.drawRecipes();">
+              <option value="All">All Categories</option>
+            </select>
+            <label><input id="haveResources" type="checkbox" onchange="game.drawRecipes();"/>Have Resources</label>
+            <input id="recipeSearch" onkeyup="game.drawRecipes();"></input>
+          </div>
           <div id="recipeScroll">
-            <ul id="recipeList">
+            <ul id="recipeCategories">
             </ul>
           </div>
           <div id="recipeRequirementsScroll">

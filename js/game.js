@@ -7,7 +7,7 @@ function Game()
   //                        Grey    Green      Yellow     Orange
   this.difficultyColors = ['#555', '#00DD00', '#E6DE00', '#FF8E46'];
   this.autoSaveId = -1;
-  this.recipeWidth = 260;
+  this.recipeWidth = 280;
 }
 
 Game.prototype.updateUI = function() {
@@ -69,6 +69,10 @@ Game.prototype.load = function(prompt) {
   }
   
   for (var iProp in I) {
+    if (!I[iProp].unlocks && Items[iProp].unlocks) {
+      delete Items[iProp].unlocks;
+    }
+    
     if (Items[iProp].Recipe) {
       Items[iProp].Recipe.level = I[iProp].Recipe.level;
       Items[iProp].Recipe.available = I[iProp].Recipe.available;
@@ -174,7 +178,7 @@ Game.prototype.drawPick = function(newPick) {
 }
 
 Game.prototype.craft = function(amount, itemLevel) {
-  var $current = $('#recipeList li.selectedRecipe');
+  var $current = $('li.selectedRecipe');
   if ($current.length > 0) {
     var item = $current.data();
     amount = parseInt(amount) || 1;
@@ -184,7 +188,7 @@ Game.prototype.craft = function(amount, itemLevel) {
 }
 
 Game.prototype.craftAll = function() {
-  var $current = $('#recipeList li.selectedRecipe');
+  var $current = $('li.selectedRecipe');
   if ($current.length > 0) {
     var item = $current.data();
     var amount = this.player.getCraftableAmount(item.Recipe);
@@ -524,6 +528,12 @@ Game.prototype.drawMoney = function() {
 Game.prototype.drawRecipes = function() {
   var g = window.game;
   var p = g.player;
+  
+  var showCategory = $('#recipeCategoryFilter').val();
+  var haveResources = $('#haveResources').is(':checked');
+  var recipeSearch = $('#recipeSearch').val().toLowerCase();
+  var searchRecipes = recipeSearch != "";
+  var showAllCategories = showCategory == "All";
 
   for (var prop in Items) {
     if (Items.hasOwnProperty(prop)) {
@@ -533,6 +543,8 @@ Game.prototype.drawRecipes = function() {
         var amount = p.getCraftableAmount(recipe);
         var id = item.id;
         var $row = $('#r_' + id);
+        var catId = 'rc_' + item.type;
+        var $category = $('#' + catId);
         if ($row.length) {
           // Row for recipe already exists.
           var color = g.determineRecipeColor(recipe);
@@ -567,7 +579,32 @@ Game.prototype.drawRecipes = function() {
         else {
           // Recipe was just unlocked.
           // Add a new row for it.
-          $('#recipeList').prepend(
+          if (!$category.length) {
+            $category = $('<ul/>',
+            {
+              id: catId,
+              class: 'recipeCategory'
+            });
+            
+            $('#recipeCategories').prepend(
+              $('<li/>')
+              .append(
+                $('<span/>',
+                {
+                  text: item.type
+                }))
+              .append($category));
+              
+            $('#recipeCategoryFilter option').eq(0)
+              .after(
+                $("<option/>",
+                {
+                  value: item.type,
+                  text: item.type
+                }));
+          }
+          
+          $category.prepend(
             $('<li/>',
             {
               id: 'r_' + id,
@@ -598,16 +635,36 @@ Game.prototype.drawRecipes = function() {
             .click(function() { selectRecipe($(this)) })
             .dblclick(function() { g.craft($('#craftAmount').val()) })
           );
+          
           $('#rn_' + id).width(g.recipeWidth).hide().fadeIn();
+        }
+        
+        if ((haveResources && amount == 0) || (searchRecipes && item.name.toLowerCase().indexOf(recipeSearch) == -1)) {
+          $('#r_' + id).hide();
+        }
+        else {
+          $('#r_' + id).show();
+        }
+        
+        if (showAllCategories || showCategory == item.type) {
+          $category.parent().show();
+        }
+        else {
+          $category.parent().hide();
         }
       }
     }
   }
-
-  var $current = $('#recipeList li.selectedRecipe');
+  
+  var $current = $('li.selectedRecipe');
   if ($current.length) {
     if (!$current.hasClass('animating')) {
       drawRecipeRequirements($current);
+    }
+    
+    if (!$current.is(":visible")) {
+      unselectRecipe($current);
+      $('#recipeRequirements').empty();
     }
   }
 }
@@ -795,7 +852,7 @@ setButtonState = function(el) {
 }
 
 selectRecipe = function(el) {
-  var $current = $('#recipeList li.selectedRecipe');
+  var $current = $('li.selectedRecipe');
   if ($current.length) {
     if (!$current.hasClass('animating')) {
       unselectRecipe($current);
@@ -816,7 +873,7 @@ unselectRecipe = function(el) {
 }
 
 drawCurrentRecipeRequirements = function() {
-  var $current = $('#recipeList li.selectedRecipe');
+  var $current = $('li.selectedRecipe');
   if ($current.length) {
     drawRecipeRequirements($current);
   }
@@ -1093,7 +1150,7 @@ $(document).ready(function() {
 });
 
 $(document).keypress(function(e) {
-  if ($('#craftAmount').is(':focus') || $('.keep').is(':focus')) {
+  if ($('#craftAmount').is(':focus') || $('.keep').is(':focus') || $('#recipeSearch').is(':focus')) {
     return;
   }
 
@@ -1109,7 +1166,7 @@ $(document).keypress(function(e) {
   }
   else if (e.which >= 49 && e.which <= 57) { // '[1-9]'
     var amount = e.which - 48;
-    var $current = $('#recipeList li.selectedRecipe');
+    var $current = $('li.selectedRecipe');
     if ($current.length > 0) {
       var g = window.game;
       var item = $current.data();
