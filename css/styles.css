@@ -85,6 +85,7 @@ div#recipes {
   border: 1px solid #999;
   background: url('../images/bg.png');
   box-shadow: 0px 0px 5px #999;
+  font-size: 0.8em;
 }
 
 div#recipeScroll {
@@ -98,11 +99,12 @@ ul#recipeCategories {
   cursor: default;
   list-style-type: none;
   margin: 0;
-  padding: 8px 0 8px 0;
+  padding: 0;
 }
 
 ul#recipeCategories > li > span {
   font-weight: bold;
+  text-decoration: underline;
   color: #fff;
   padding-left: 4px;
 }
@@ -110,12 +112,12 @@ ul#recipeCategories > li > span {
 ul.recipeCategory {
   cursor: default;
   list-style-type: none;
-  margin: 0;
-  padding: 8px 0 8px 0;
+  margin: 0 0 10px 0;
+  padding: 0;
 }
 
 ul.recipeCategory li {
-  padding: 4px 4px 4px 8px;
+  padding: 0px 0px 0px 4px;
   white-space: nowrap;
   overflow: visible !important; /* jQuery's animate forces overflow: hidden; */
   text-shadow: 1px 1px #000;
@@ -132,7 +134,6 @@ ul.recipeCategory li div.recipeName {
 }
 
 ul.recipeCategory li.selectedRecipe {
-  font-weight: bold;
   border: 1px solid white;
 }
 
@@ -156,17 +157,14 @@ div#recipeRequirements {
 
 div#recipeRequirements .recipeDesc {
   color: #999;
-  font-size: 0.9em;
 }
 
 div#recipeRequirements .recipeUnlocks {
   color: #FF8E46;
-  font-size: 0.8em;
 }
 
 div#recipeRequirements .recipeSellsFor {
   color: #666;
-  font-size: 0.8em;
 }
 
 table#recipeRequirementList {

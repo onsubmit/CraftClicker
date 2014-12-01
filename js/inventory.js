@@ -45,6 +45,7 @@ Inventory.prototype.craft = function(requiredRecipe) {
           type: item.type,
           level: item.level,
           name: item.name,
+          id: item.id,
           SmeltModifiers: item.SmeltModifiers,
           reserved: true // Added to the forge array, but reserved for the craft.
         };
@@ -68,6 +69,7 @@ Inventory.prototype.craft = function(requiredRecipe) {
           type: item.type,
           level: item.level,
           name: item.name,
+          id: item.id,
           SmeltModifiers: item.SmeltModifiers
         };
         
@@ -90,17 +92,26 @@ Inventory.prototype.craft = function(requiredRecipe) {
   
     var isPick = item.type && item.type == ItemType.Pick;
     if (isPick) {
-      if (!this.pick) {
+      if (!this.pick || this.pick.level < item.level) {
+        if (this.pick) {
+          // Auto equip new pick if it's higher level than the current one.
+          this.mergeItem(this.pick, 1);
+        }
+        
         this.pick = {
           durability: item.durability,
           maxDurability: item.durability,
           name: item.name,
+          id: item.id,
           image: item.image,
+          level: item.level,
+          sellValue: item.sellValue,
           LootModifiers: item.LootModifiers,
         };
         
         $('#gather').prop("src", this.pick.image);
         $('#currentPick').text(this.pick.name);
+        
         return;
       }
     }
@@ -120,7 +131,7 @@ Inventory.prototype.craft = function(requiredRecipe) {
     else {
     // Put the item into the inventory.
     // The item could be a forge if the forge array was full.
-    this.mergeItem(item, makes);    
+    this.mergeItem(item, makes); 
     return 0;
     }
   }

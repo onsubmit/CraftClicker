@@ -93,14 +93,18 @@ Player.prototype.levelUp = function() {
 }
 
 Player.prototype.sellItem = function(item, amount) {
-  this.money += (amount * item.sellValue);
+  // Damaged picks sell for less
+  var multiplier = item.durability ? item.durability / item.maxDurability : 1;
+  this.money += Math.ceil(amount * item.sellValue * multiplier);
 }
 
 Player.prototype.sellAllItems = function() {
   for (var prop in this.inventory.items) {
     var invItem = this.inventory.items[prop];
-    this.sellItem(invItem.Item, invItem.amount);
-    invItem.amount = 0;
+    if (invItem.amount > 0) {
+      this.sellItem(invItem.Item, invItem.amount);
+      invItem.amount = 0;
+    }
   }
 }
 
