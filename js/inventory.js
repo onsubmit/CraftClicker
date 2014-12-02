@@ -99,6 +99,7 @@ Inventory.prototype.craft = function(requiredRecipe) {
         }
         
         this.pick = {
+          type: item.type,
           durability: item.durability,
           maxDurability: item.durability,
           name: item.name,
@@ -149,6 +150,9 @@ Inventory.prototype.mergeDrops = function(drops) {
 Inventory.prototype.mergeItem = function(item, amount) {
   if (this.items[item.name]) {
     this.items[item.name].amount += amount;
+    if (item.durability) {
+      this.items[item.name].durabilities.push(item.durability);
+    }
   }
   else {
     this.size++;
@@ -157,6 +161,10 @@ Inventory.prototype.mergeItem = function(item, amount) {
       Item: item,
       amount: amount
     };
+    
+    if (item.durability) {
+      this.items[item.name].durabilities = [item.durability];
+    }
   }
 }
 

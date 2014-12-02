@@ -18,6 +18,7 @@ improveForge = function(newForge, oldForge, multiplier) {
 improvePick = function(newPick, oldPick) {
   newPick.level = oldPick.level + 1;
   newPick.durability = oldPick.durability * 2;
+  newPick.maxDurability = newPick.durability;
   for (var prop in oldPick.LootModifiers) {
     if(oldPick.LootModifiers.hasOwnProperty(prop)) {
       newPick.LootModifiers[prop] = oldPick.LootModifiers[prop];
@@ -246,6 +247,7 @@ Items["Wooden Pick"] = {
   type: ItemType.Pick,
   level: 1,
   durability: 64,
+  maxDurability: 64,
   image: 'images/pick-wooden.png',
   LootModifiers: {},
   Recipe: {

@@ -17,6 +17,7 @@ Game.prototype.updateUI = function() {
   g.drawMoney();
   g.drawInventory();
   g.drawRecipes();
+  g.drawPick();
 }
 
 Game.prototype.save = function() {
@@ -128,7 +129,13 @@ Game.prototype.gather = function() {
         this.player.inventory.items[newPick.name].amount -= 1;
         this.player.inventory.pick = {};
         $.extend(true, this.player.inventory.pick, newPick); // Deep copy new pick item (as to not modify original item)
-        this.player.inventory.pick.maxDurability = newPick.durability;
+        if (this.player.inventory.items[newPick.name].durabilities) {
+          this.player.inventory.pick.durability = this.player.inventory.items[newPick.name].durabilities.pop();
+        }
+        else {
+          this.player.inventory.pick.durability = newPick.maxDurability;
+        }
+        
         $('#gather').prop('src', newPick.image);
         $('#currentPick').text(newPick.name);
       }
@@ -151,7 +158,6 @@ Game.prototype.gather = function() {
     }
   }
   
-  this.drawPick(newPick);
   return drops;
 }
 
