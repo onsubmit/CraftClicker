@@ -20,53 +20,87 @@ Game.prototype.updateUI = function() {
   g.drawPick();
 }
 
+Game.prototype.getSaveData = function() {
+  var player = btoa(JSON.stringify(game.player));
+  var items = btoa(JSON.stringify(Items));
+  var autoSaveChecked = btoa(JSON.stringify($('#autosave').is(':checked') ? 1 : 0));
+  return player + "|||" + items + "|||" + autoSaveChecked;
+}
+
 Game.prototype.save = function() {
-  localStorage['CraftClicker_game'] = btoa(JSON.stringify(window.game));
-  localStorage['CraftClicker_items'] = btoa(JSON.stringify(Items));
+  localStorage['CraftClicker'] = game.getSaveData();
 }
 
 Game.prototype.reset = function() {
   if (confirm('Reset everything?')) {
-    localStorage.removeItem('CraftClicker_game');
-    localStorage.removeItem('CraftClicker_items');
+    localStorage.removeItem('CraftClicker');
     window.location.reload()
   }
 }
 
-Game.prototype.load = function(prompt) {
+Game.prototype.export = function() {
+  $("#exportContainer").show();
+  $("#exportData").val(game.getSaveData()).focus();
+}
+
+Game.prototype.import = function() {
+  var saveData = prompt("Paste save data from clipboard:");
+  localStorage['CraftClicker'] = saveData;
+  game.load(false, true);
+}
+
+Game.prototype.load = function(prompt, isImport) {
   if (prompt && !confirm('Load save state?')) {
     return;
   }
 
   var g = window.game;
   var p = g.player;
-  
-  var lsG = localStorage['CraftClicker_game'];
-  var lsI = localStorage['CraftClicker_items'];
-  if (!lsG || !lsI) {
+   
+  var lS = localStorage['CraftClicker'];
+  if (!lS) {
     return;
   }
   
-  var G = JSON.parse(atob(lsG));
+  var split = lS.split("|||");
+  if (split.length != 3) {
+    if (isImport) {
+      alert("Invalid save data");
+    }
+    
+    return;
+  }
+  
+  var lSP = split[0];
+  var lsI = split[1];
+  var lsA = split[2];
+  if (!lSP || !lsI || !lsA) {
+    if (isImport) {
+      alert("Invalid save data");
+    }
+    
+    return;
+  }
+  
+  var P = JSON.parse(atob(lSP));
   var I = JSON.parse(atob(lsI));
+  var A = JSON.parse(atob(lsA));
 
   // TODO: There has to be a better way to do this.
-  for (var gProp in G) {
-    if (gProp == 'player') {
-      for(var pProp in G.player) {
-        if (pProp == 'inventory') {
-          for (var i in G.player.inventory) {
-            g.player.inventory[i] = G.player.inventory[i];
-          }
-        }
-        else {
-          g.player[pProp] = G.player[pProp];
-        }
+  for(var pProp in P) {
+    if (pProp == 'inventory') {
+      for (var i in P.inventory) {
+        p.inventory[i] = P.inventory[i];
       }
     }
     else {
-      g[gProp] = G[gProp];
+      g.player[pProp] = P[pProp];
     }
+  }
+  
+  // If a save occurs when a forge is reserved, we don't want it to be reserved after a load.
+  for (var i = 0; i < p.inventory.forges.length; i++) {
+    p.inventory.forges[i].reserved = false;
   }
   
   for (var iProp in I) {
@@ -80,6 +114,8 @@ Game.prototype.load = function(prompt) {
     }
   }
   
+  $('#autosave').attr('checked', A == 1);
+
   g.updateUI();
   g.drawPick(true);
   p.inventory.drawForges();
@@ -1140,6 +1176,11 @@ $(document).ready(function() {
   $('#save').click(function() { game.save(); });
   $('#load').click(function() { game.load(true); });
   $('#reset').click(function() { game.reset(); });
+  $('#export').click(function() { game.export(); });
+  $('#import').click(function() { game.import(); });
+  $('#exportContainer').hide();
+  $('#exportHide').click(function() { $("#exportContainer").hide(); });
+  $('#exportData').focus(function() { this.select(); });
   $('#autosave').change(function() {
     var isChecked = $(this).is(':checked');
     if (isChecked) {

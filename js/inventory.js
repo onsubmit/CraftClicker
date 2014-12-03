@@ -455,7 +455,20 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
           // Reserve remaining forges from the inventory.
           if (numForgesReserved < numForgesNeeded) {
             var remainingToConsume = numForgesNeeded - numForgesReserved;
-            this.items[res.name].amount -= remainingToConsume;
+            var numForgesInInventory = this.items[res.name] ? this.items[res.name].amount : 0;
+            
+            if (numForgesInInventory >= remainingToConsume) {
+              // The player has enough forges in their inventory.
+              // Remove them from the inventory.
+              this.items[res.name].amount -= remainingToConsume;
+            }
+            else {
+              // The player does not have enough forges in their inventory.
+              // Remove any from the inventory and craft the remainder.
+              if (this.items[res.name]) {
+                this.items[res.name].amount = 0;
+              }
+            }
           }
         }
         else {

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>CraftClicker 1.36 beta</title>
+    <title>CraftClicker 1.37 beta</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
@@ -10,12 +10,12 @@
     <link type="text/css" href="css/styles.css" rel="stylesheet"  />
   </head>
   <body>
+    <div id="container">
     <div class="floatRight">
       <button id="save">Save</button>
       <button id="load">Load</button>
       <p style="text-align: right; margin-top: 10px;"><input id="autosave" type="checkbox" checked="checked" /><label for="autosave">Autosave</label></p>
     </div>
-    <div id="container">
       <div class="floatLeft">
         <div id="gatherActions">
           <div>
@@ -106,9 +106,15 @@
         <p>'a': Craft all of selected recipe</p>
         <p>'1-9': Craft <i>n</i> of selected</p>
       </div>
-    </div>
-    <div class="floatRight">
-      <button id="reset">Reset</button>
+      <div class="floatRight">
+        <button id="export">Export</button>
+        <button id="import">Import</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div id="exportContainer" class="floatRight">
+        <a id="exportHide" href="#" class="darkLink">Hide</a><br />
+        <textarea id="exportData" readonly="readonly" rows="10" cols="100"></textarea>
+      </div>
     </div>
   </body>
 </html>
