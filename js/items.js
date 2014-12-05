@@ -26,6 +26,18 @@ improvePick = function(newPick, oldPick) {
   }
 }
 
+determineImages = function(item) {
+  if (!item.image) {
+    item.image = 'images/' + item.id + '.png';
+  }
+}
+
+determineStackSize = function(item) {
+  if (!item.stackSize) {
+    item.stackSize = 64;
+  }
+}
+
 determineUnlocks = function(item) {
   if (item.Recipe.unlockedBy) {
     if (!item.Recipe.unlockedBy.unlocks) {
@@ -248,7 +260,6 @@ Items["Wooden Pick"] = {
   level: 1,
   durability: 64,
   maxDurability: 64,
-  image: 'images/pick-wooden.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Stone and Coal.",
@@ -266,7 +277,6 @@ Items["Wooden Pick"].LootModifiers["Stone"] = 1;
 
 Items["Stone Pick"] = {
   type: ItemType.Pick,
-  image: 'images/pick-stone.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Iron and Copper ore.",
@@ -285,7 +295,6 @@ Items["Stone Pick"].LootModifiers["Iron Ore"] = 1;
 
 Items["Cast Iron Pick"] = {
   type: ItemType.Pick,
-  image: 'images/pick-cast-iron.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Gold and Tin ore.",
@@ -304,7 +313,6 @@ Items["Cast Iron Pick"].LootModifiers["Gold Ore"] = 1;
 
 Items["Gold Pick"] = {
   type: ItemType.Pick,
-  image: 'images/pick-gold.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Bauxite ore.",
@@ -322,7 +330,6 @@ Items["Gold Pick"].LootModifiers["Bauxite Ore"] = 1;
 
 Items["Steel Pick"] = {
   type: ItemType.Pick,
-  image: 'images/pick-steel.png',
   LootModifiers: {},
   Recipe: {
     text: "Allows for gathering Lead ore.",
@@ -445,6 +452,8 @@ for (var prop in Items) {
     item.name = prop;
     item.id = item.name.replace(/ /g, '');
     
+    determineImages(item);
+    determineStackSize(item);
     determineUnlocks(item);
     determineTotalRequirements(item);
     determineSellValue(item);

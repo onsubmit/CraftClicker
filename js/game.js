@@ -16,6 +16,7 @@ Game.prototype.updateUI = function() {
   g.drawLevel();
   g.drawMoney();
   g.drawInventory();
+  g.drawInventory2();
   g.drawRecipes();
   g.drawPick();
 }
@@ -162,7 +163,7 @@ Game.prototype.gather = function() {
       newPick = this.player.inventory.getHighestLevelPick();
 
       if (newPick) {
-        this.player.inventory.items[newPick.name].amount -= 1;
+        this.player.inventory.removeItem(newPick, 1);
         this.player.inventory.pick = {};
         $.extend(true, this.player.inventory.pick, newPick); // Deep copy new pick item (as to not modify original item)
         if (this.player.inventory.items[newPick.name].durabilities) {
@@ -361,11 +362,20 @@ Game.prototype.cancelNodeFromRecipeTree = function(node) {
       
       // Release the remaining forges into the inventory.
       if (numForgesReleased < amount) {
-        p.inventory.mergeItemByName(prop, amount - numForgesReleased);
+        var unmerged = p.inventory.mergeItemByName(prop, amount - numForgesReleased);
+        if (unmerged > 0) {
+          p.sellItemByName(prop, unmerged);
+        }
       }
     }
     else {
-      p.inventory.mergeItemByName(prop, amount);
+      var unmerged = p.inventory.mergeItemByName(prop, amount)
+      if (unmerged > 0) {
+        if (unmerged > 0) {
+          p.sellItemByName(prop, unmerged);
+        }
+      }
+      
       g.drawInventory();
     }
   }
@@ -440,7 +450,10 @@ Game.prototype.craftNodeFromRecipeTree = function(node) {
         for (var prop in node.reserved) {
           var remainingReserved = node.reserved[prop];
           if (remainingReserved > 0) {
-            p.inventory.mergeItemByName(prop, remainingReserved);
+            var unmerged = p.inventory.mergeItemByName(prop, remainingReserved);
+            if (unmerged > 0) {
+              p.sellItemByName(prop, unmerged);
+            }
           }
         }
         
@@ -711,6 +724,46 @@ Game.prototype.drawRecipes = function() {
   }
 }
 
+Game.prototype.drawInventory2 = function() {
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+
+  for (var index in inv.backpackSlotNameMap) {
+    var itemName = inv.backpackSlotNameMap[index];
+    var item = inv.items[itemName];
+    var amount = item.backpackSlots[index];
+    
+    var isNew = false;
+    if (!$('#i' + index + '_icon').length) {
+      isNew = true;
+    }
+    
+    var $invTd = $('#i' + index);
+    if (isNew) {
+      inv.getIcon(item.Item, index).append($('<div/>',
+        {
+          id: 'i' + index + '_amount',
+          text: amount,
+          class: 'inventoryAmount'
+        })).appendTo($invTd);
+    }
+    else {
+      var $amount = $('#i' + index + '_amount');
+      
+      if (amount == 0) {
+        $invTd.empty();
+        delete inv.backpackSlotNameMap[index];
+        delete inv.items[itemName].backpackSlots[index];
+        inv.determineNextAvailableBackpackSlot();
+      }
+      else {
+        $amount.text(amount);
+      }
+    }
+  }
+}
+
 Game.prototype.drawInventory = function() {
   var g = window.game;
   var p = g.player;
@@ -770,49 +823,6 @@ Game.prototype.drawInventory = function() {
             id: 'iv_' + id,
             text: amount
           })
-        )
-        .append(
-          $('<td/>').append(
-            $('<span/>',
-            {
-              id: 'ik_' + id,
-              text: invItem.keep || '\u221E'
-            }).on('click',
-            { thisId: id },
-            function(e) {
-              $('#ik_' + e.data.thisId).hide();
-              $('#iktb_' + e.data.thisId).show().focus();
-            }
-          )
-          ).append(
-           $('<input/>',
-            {
-              id: 'iktb_' + id,
-              class: 'keep',
-            })
-            .on('keypress', function() {
-              return event.charCode >= 48 && event.charCode <= 57;
-            })
-            .blur(
-              { thisId: id, thisProp: prop },
-              function(e) {
-                var val = $(this).val();
-                var val = (val == '' ? -1 : val);
-                $('#ik_' + e.data.thisId).text(val >= 0 ? val : '\u221E').show();
-                $(this).hide();
-                
-                var invItem = inv.items[e.data.thisProp];
-                invItem.keep = parseInt(val);
-                
-                if (invItem.keep >= 0 && invItem.keep < invItem.amount) {
-                  p.sellItem(invItem.Item, invItem.amount - invItem.keep);
-                  invItem.amount = invItem.keep;
-                  g.updateUI();
-                }
-              }
-            )
-            .hide()
-          )
         );
 
         // If no inventory rows exist, add it to the <tbody>
@@ -1149,22 +1159,6 @@ $(document).ready(function() {
 
   $('#durability').hide();
   $('#gatherLink').click(function(e) { e.preventDefault(); });
-    
-  $('#keepHelp').click(function(e)
-  {
-    e.preventDefault();
-    var left = $(this).position().left;
-    var top = $(this).position().top + 20;
-
-    $('#keepHelpTooltip').css('left', left).css('top', top).show();
-  });
-  
-  $('#keepHelpClose').click(function(e)
-  {
-    e.preventDefault();
-    $('#keepHelpTooltip').hide();
-    $('#keepHelp').hide();
-  });
   
   $('#sellAll').click(function(e)
   {
@@ -1197,7 +1191,7 @@ $(document).ready(function() {
 });
 
 $(document).keypress(function(e) {
-  if ($('#craftAmount').is(':focus') || $('.keep').is(':focus') || $('#recipeSearch').is(':focus')) {
+  if ($('#craftAmount').is(':focus') || $('#recipeSearch').is(':focus')) {
     return;
   }
 

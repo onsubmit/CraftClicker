@@ -14,4 +14,6 @@ for (var prop in Resources) {
   var resource = Resources[prop];
   resource.name = prop;
   resource.id = resource.name.replace(/ /g, '');
+  resource.image = 'images/' + resource.id + '.png';
+  resource.stackSize = 64;
 }

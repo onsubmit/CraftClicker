@@ -98,6 +98,10 @@ Player.prototype.sellItem = function(item, amount) {
   this.money += Math.ceil(amount * item.sellValue * multiplier);
 }
 
+Player.prototype.sellItemByName = function(name, amount) {
+  this.sellItem(Items[name] || Resources[name]);
+}
+
 Player.prototype.sellAllItems = function() {
   for (var prop in this.inventory.items) {
     var invItem = this.inventory.items[prop];
@@ -127,20 +131,12 @@ Player.prototype.determineRecipeDifficulty = function(recipe) {
 
 Player.prototype.collect = function(drops) {
   for (var prop in drops) {
-    if(drops.hasOwnProperty(prop)) {
-      var drop = drops[prop];
-      var inventoryItem = this.inventory.items[drop.item.name];
-      if (inventoryItem && inventoryItem.keep >= 0 && inventoryItem.amount + drop.amount > inventoryItem.keep) {
-        // Looting this drop will exceed the amount the player wishes to keep.
-        // Sell any extra.
-        var numToSell = inventoryItem.amount + drop.amount - inventoryItem.keep;
-        drop.amount = drop.amount - numToSell;
-        this.sellItem(drop.item, numToSell);
-      }
+    var drop = drops[prop];
+    var unmerged = this.inventory.mergeItem(drop.item, drop.amount);
+    if (unmerged > 0) {
+      this.sellItem(drop.item, unmerged);
     }
   }
-
-  this.inventory.mergeDrops(drops);
 }
 
 Player.prototype.getCraftableAmount = function(recipe) {

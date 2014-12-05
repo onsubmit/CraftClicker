@@ -22,6 +22,68 @@ div#inventory {
   margin-left: 300px;
 }
 
+table#inventoryTable2 {
+  color: #fff;
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: solid;
+	border-color: gray;
+	border-collapse: separate;
+  background: url('../images/bg.png');
+  box-shadow: 0px 0px 5px #999;
+  font-size: 0.8em;
+}
+
+table#inventoryTable2 td {
+  border: 1px solid #666;
+	padding: 4px;
+  width: 44px;
+  height: 54px;
+}
+
+table#inventoryTable2 td.moneyRow {
+	border: 0;
+  padding: 0;
+  width: 100%;
+  height: 10px;
+}
+
+div.inventoryIcon {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  background-color: #666;
+  padding: 0;
+  margin: 0;
+  border: 2px solid #aaa;
+}
+
+div.highlight {
+  border: 2px solid #ccc;
+}
+
+div.inventoryAmount {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-right: 2px;
+    font-family: consolas, "courier new";
+    text-shadow: 1px 1px #000;
+    cursor: default;
+}
+
+div.tooltip {
+  position: fixed;
+  white-space: nowrap;
+  padding: 5px;
+  color: #ddd;
+  background: #002;
+  opacity: 0.9;
+  z-index: 10;
+  display: none;
+  border: 1px solid #aaa;
+}
+
 table#inventoryTable {
   border: 1px solid black;
   border-bottom: 0;
@@ -122,6 +184,7 @@ ul.recipeCategory li {
   overflow: visible !important; /* jQuery's animate forces overflow: hidden; */
   text-shadow: 1px 1px #000;
   margin-bottom: 1px;
+  cursor: pointer;
 }
 
 ul.recipeCategory li span {
@@ -293,40 +356,6 @@ a.darkLink:hover, a.darkLink:active {
   color: #666;
 }
 
-a#keepHelp:link, a#keepHelp:visited {
-  color: #00E;
-}
-
-a#keepHelp:hover, a#keepHelp:active {
-  color: #551A8B;
-}
-
-div#keepHelpTooltip {
-  position: fixed;
-  font-size: 0.8125em;
-  padding: 5px;
-  color: #ddd;
-  background: #002;
-  opacity: 0.9;
-  z-index: 10;
-  display: none;
-  text-align: left;
-}
-
-div#keepHelpTooltip ol {
-  padding-left: 20px;
-  margin: 0;
-}
-
-div#keepHelpTooltip a:link, div#keepHelpTooltip a:visited {
-  color: #FFF;
-}
-
-div#keepHelpTooltip a:hover, div#keepHelpTooltip a:active {
-  color: #666;
-}
-
-
 div#gatherActions button {
   padding: 4px;
   margin-top: 4px;
@@ -386,10 +415,6 @@ div#exportContainer {
   clear: both;
 }
 
-input.keep {
-  width: 3em;
-}
-
 .smallBar {
   height: 20px;
 }
@@ -406,4 +431,18 @@ input.keep {
 
 .scrollbarPadding {
   padding-right: 20px;
+}
+
+.grabbable {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+ /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+.grabbable:active { 
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
 }
