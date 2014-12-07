@@ -681,6 +681,7 @@ Inventory.prototype.getIcon = function(item, index) {
     }
     
     g.drawInventory();
+    g.drawRecipes();
   }
 
   var shiftClick = function(index) {
