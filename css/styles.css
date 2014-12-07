@@ -17,12 +17,12 @@ div#container {
 }
 
 div#inventory {
-  display: none;
   width: 300px;
+  padding-top: 98px;
   margin-left: 300px;
 }
 
-table#inventoryTable2 {
+table#inventoryTable {
   color: #fff;
 	border-width: 1px;
 	border-spacing: 2px;
@@ -34,16 +34,16 @@ table#inventoryTable2 {
   font-size: 0.8em;
 }
 
-table#inventoryTable2 td {
+table#inventoryTable td {
   border: 1px solid #666;
 	padding: 4px;
   width: 44px;
   height: 54px;
 }
 
-table#inventoryTable2 td.moneyRow {
+table#inventoryTable td.moneyRow {
 	border: 0;
-  padding: 0;
+  padding: 5px;
   width: 100%;
   height: 10px;
 }
@@ -84,7 +84,7 @@ div.tooltip {
   border: 1px solid #aaa;
 }
 
-table#inventoryTable {
+table#inventoryTableOld {
   border: 1px solid black;
   border-bottom: 0;
   border-right: 0;
@@ -95,7 +95,7 @@ table#inventoryTable {
   font-size: 1em;
 }
 
-table#inventoryTable td, table#inventoryTable th {
+table#inventoryTableOld td, table#inventoryTableOld th {
   margin: 0;
   border-bottom: 1px solid #000;
   border-right: 1px solid #000;
@@ -106,7 +106,6 @@ table#inventoryTable td, table#inventoryTable th {
 #money {
   text-align: right;
   color: white;
-  padding: 5px;
 }
 
 div#recipeFilters {
@@ -386,7 +385,7 @@ div#durability {
 
 div#forges {
   display: none;
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 div#forges table {
@@ -431,18 +430,4 @@ div#exportContainer {
 
 .scrollbarPadding {
   padding-right: 20px;
-}
-
-.grabbable {
-    cursor: move; /* fallback if grab cursor is unsupported */
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-}
-
- /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-.grabbable:active { 
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
 }

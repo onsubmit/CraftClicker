@@ -200,6 +200,30 @@ Inventory.prototype.takeItemFromBackpack = function(item, amount) {
   }
 }
 
+Inventory.prototype.sortBackpack = function() {
+  var arrNames = [];
+  for (var prop in this.backpackSlotNameMap) {
+    arrNames.push(this.backpackSlotNameMap[prop]);
+  }
+  
+  arrNames.sort();
+  
+  this.backpackSlotNameMap = {};
+  for (var i = 0; i < arrNames.length; ) {
+    var itemName = arrNames[i];
+    this.backpackSlotNameMap[i + 1] = itemName;
+    
+    var newSlots = {};
+    for (var prop in this.items[itemName].backpackSlots) {
+      this.backpackSlotNameMap[i + 1] = itemName;
+      newSlots[i + 1] = this.items[itemName].backpackSlots[prop];
+      i++;
+    }
+    
+    this.items[itemName].backpackSlots = newSlots;
+  }
+}
+
 Inventory.prototype.removeItem = function(item, amount) {
   this.items[item.name].amount -= amount;
   this.takeItemFromBackpack(item, amount);
@@ -590,7 +614,7 @@ Inventory.prototype.getIcon = function(item, index) {
 
   d = $('<div/>', {
             id: 'i' + index + '_icon',
-            class: 'inventoryIcon grabbable',
+            class: 'inventoryIcon',
             style: 'background-image: ' + 'url(\'' + item.image + '\');',
 
         });
@@ -598,8 +622,8 @@ Inventory.prototype.getIcon = function(item, index) {
   var showToolip = function(icon, e) {
     var t = icon.children('.tooltip');
 
-    var left = e.pageX + 10;
-    var top = e.pageY + 10;
+    var left = e.pageX + 10 - window.pageXOffset;
+    var top = e.pageY + 10 - window.pageYOffset;
 
     if (left + t.width() > $(window).width() - 20) {
       left = e.pageX - t.width() - 10;
@@ -635,21 +659,20 @@ Inventory.prototype.getIcon = function(item, index) {
     hideToolip($(this));
   });
 
-  var rightClick = function() {
+  var sellStack = function(index, sellAll) {
     var g = window.game;
-    /*
-    var itemInInventory = item.inventoryIndex >= 0;
-
-    if (itemInInventory) {
-      g.equipItemFromInventory(item);
-    }
-    else {
-      g.unEquipItem(item);
-    }
-    */
+    var p = g.player;
+    var inv = p.inventory;
+    
+    var itemName = inv.backpackSlotNameMap[index];
+    var amount = sellAll ? inv.items[itemName].backpackSlots[index] : 1;
+    p.sellItemByName(itemName, amount);
+    inv.items[itemName].backpackSlots[index] -= amount ;
+    inv.items[itemName].amount -= amount;
+    g.drawInventory();
   }
 
-  var shiftClick = function() {
+  var shiftClick = function(index) {
     /*
     var itemInInventory = item.inventoryIndex >= 0;
 
@@ -662,17 +685,17 @@ Inventory.prototype.getIcon = function(item, index) {
     */
   }
 
-  d.mousedown(function(e) {
+  d.mousedown({ index: index }, function(e) {
     switch (e.which) {
         case 1: // left
           if (e.shiftKey) {
-            shiftClick();
+            shiftClick(e.data.index);
           }
           break;
         case 2: // middle
           break;
         case 3: // right
-            rightClick();
+            sellStack(e.data.index, e.shiftKey);
           break;
         default:
     }

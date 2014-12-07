@@ -99,7 +99,7 @@ Player.prototype.sellItem = function(item, amount) {
 }
 
 Player.prototype.sellItemByName = function(name, amount) {
-  this.sellItem(Items[name] || Resources[name]);
+  this.sellItem(Items[name] || Resources[name], amount);
 }
 
 Player.prototype.sellAllItems = function() {

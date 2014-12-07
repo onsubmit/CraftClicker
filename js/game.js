@@ -16,7 +16,6 @@ Game.prototype.updateUI = function() {
   g.drawLevel();
   g.drawMoney();
   g.drawInventory();
-  g.drawInventory2();
   g.drawRecipes();
   g.drawPick();
 }
@@ -724,10 +723,23 @@ Game.prototype.drawRecipes = function() {
   }
 }
 
-Game.prototype.drawInventory2 = function() {
+Game.prototype.clearInventory = function() {
   var g = window.game;
   var p = g.player;
   var inv = p.inventory;
+  
+  for (var i = 0; i <= inv.maxSize; i++) {
+    var $invTd = $('#i' + i);
+    $invTd.empty();
+  }
+}
+
+Game.prototype.drawInventory = function() {
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+  
+  g.drawMoney();
 
   for (var index in inv.backpackSlotNameMap) {
     var itemName = inv.backpackSlotNameMap[index];
@@ -764,7 +776,8 @@ Game.prototype.drawInventory2 = function() {
   }
 }
 
-Game.prototype.drawInventory = function() {
+
+Game.prototype.drawInventoryOld = function() {
   var g = window.game;
   var p = g.player;
   var inv = p.inventory;
@@ -826,8 +839,8 @@ Game.prototype.drawInventory = function() {
         );
 
         // If no inventory rows exist, add it to the <tbody>
-        var $tbody = $('#inventoryTable tbody');
-        var $rows = $('#inventoryTable td[id*=in]');
+        var $tbody = $('#inventoryTableOld tbody');
+        var $rows = $('#inventoryTableOld td[id*=in]');
         if (!$rows.length) {
           $tbody.append($newRow);
           $('#inventory').show();
@@ -837,7 +850,7 @@ Game.prototype.drawInventory = function() {
         // Keep the table sorted.
         // Find the first row whose name is alphatetically greater than the new name
         var $row = null;
-        $('#inventoryTable td[id*=in]').each(function() {
+        $('#inventoryTableOld td[id*=in]').each(function() {
           if ($(this).text().localeCompare(prop) == 1) {
             $row = $(this).parent();
             return false;
@@ -849,7 +862,7 @@ Game.prototype.drawInventory = function() {
         }
         else {
           // No row found, put it at the end
-          $('#inventoryTable tbody tr:last').after($newRow);
+          $('#inventoryTableOld tbody tr:last').after($newRow);
         }
       }
     }
@@ -1169,6 +1182,7 @@ $(document).ready(function() {
   
   $('#save').click(function() { game.save(); });
   $('#load').click(function() { game.load(true); });
+  $('#sortBackpack').click(function() { game.player.inventory.sortBackpack(); game.clearInventory(); game.drawInventory(); });
   $('#reset').click(function() { game.reset(); });
   $('#export').click(function() { game.export(); });
   $('#import').click(function() { game.import(); });
