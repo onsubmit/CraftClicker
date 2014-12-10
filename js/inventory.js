@@ -1,11 +1,18 @@
 function Inventory() {
-  this.maxSize = 16;
   this.items = {};
-  this.firstEmptyBackpackSlot = 1;
-  this.backpackSlotNameMap = {};
   this.reserved = {};
   this.forges = [];
   this.maxNumForges = 4;
+  this.Locations =
+  {
+    Backpack:
+    {
+      maxSize: 36,
+      firstEmptySlot: 1,
+      lastSelectedSlot: 0,
+      SlotNameMap: {}
+    },
+  };
 }
 
 Inventory.prototype.craft = function(requiredRecipe) {
@@ -122,23 +129,116 @@ Inventory.prototype.craft = function(requiredRecipe) {
     
     // Put the item into the inventory.
     // The item could be a forge if the forge array was full.
+    if (recipe.Output) {
+      return this.mergeItem(recipe.Output, makes);
+    }
+    
     return this.mergeItem(item, makes);
   }
 }
 
-Inventory.prototype.determineNextAvailableBackpackSlot = function() {
+Inventory.prototype.determineNextAvailableBackpackSlot = function(location) {
   var index = 0;
-  for (var i = 1; i <= this.maxSize; i++) {
-    if (!this.backpackSlotNameMap[i]) {
+  for (var i = 1; i <= this.Locations[location].maxSize; i++) {
+    if (!this.Locations[location].SlotNameMap[i]) {
+      this.Locations[location].firstEmptySlot = i;
       index = i;
       break;
     }
   }
   
-  this.firstEmptyBackpackSlot = index;
+  return index;
 }
 
-Inventory.prototype.mergeItemIntoBackpack = function(item, amount) {
+Inventory.prototype.mergeItemIntoInventory = function(item, amount) {
+  if (!this.items[item.name].InventorySlots) {
+    // Item does not exist anywhere in the inventory.
+    // Find the first available slot to put the item into.
+    for (var prop in this.Locations) {
+      var location = this.Locations[prop];
+      if (location.firstEmptySlot) {
+        // Empty slot found.
+        location.SlotNameMap[location.firstEmptySlot] = item.name;
+        this.items[item.name].InventorySlots = {};
+        this.items[item.name].InventorySlots[prop] = {};
+        
+        if (amount < item.stackSize) {
+          // Insert the items into the slot.
+          this.items[item.name].InventorySlots[prop][location.firstEmptySlot] = amount;
+          amount = 0;
+        }
+        else {
+          // Too many items to fit into the slot.
+          // Insert a full stack and find a place to put the rest.
+          amount -= item.stackSize;
+          this.items[item.name].InventorySlots[prop][location.firstEmptySlot] = item.stackSize;
+        }
+        
+        this.determineNextAvailableBackpackSlot(prop);
+        break;
+      }
+    }
+  }
+  else {
+    // Item already exists in the inventory in at least one slot.
+    // Find a non-full slot.
+    for (var prop in this.items[item.name].InventorySlots) {
+      var slots = this.items[item.name].InventorySlots[prop];
+      for (var slot in slots) {
+        var stackAmount = slots[slot];
+        if (stackAmount < item.stackSize) {
+          // The slot isn't full.
+          var newAmount = stackAmount + amount;
+          if (newAmount <= item.stackSize) {
+            // The slot has enough room to put the items into.
+            slots[slot] = newAmount;
+            amount = 0;
+            break;
+          }
+          else {
+            // The slot doesn't have enough room to put the items into.
+            // Put as many as possible in and find the next non-full slot.
+            amount = newAmount - item.stackSize;
+            slots[slot] = item.stackSize;
+          }
+        }
+      }
+      
+      this.determineNextAvailableBackpackSlot(prop);
+    }
+  }
+  
+  if (amount > 0) {
+    // All current stacks are full and there are still more items to insert.
+    // Find the first empty slot.
+    for (var prop in this.Locations) {
+      var index = this.determineNextAvailableBackpackSlot(prop);
+      while (index) {
+        if (!this.items[item.name].InventorySlots[prop]) {
+          this.items[item.name].InventorySlots[prop] = {};
+        }
+        
+        this.Locations[prop].SlotNameMap[index] = item.name;
+        if (amount < item.stackSize) {
+          this.items[item.name].InventorySlots[prop][index] = amount;
+          this.determineNextAvailableBackpackSlot(prop);
+          return 0;
+        }
+        else {
+          this.items[item.name].InventorySlots[prop][index] = item.stackSize;
+          amount -= item.stackSize;
+        }
+        
+        index = this.determineNextAvailableBackpackSlot(prop);
+      }
+    }
+    
+    // There is no room in the inventory for these items.
+    // Sell the remainder.
+    return amount;
+  }
+
+/*
   if (!this.items[item.name].backpackSlots && this.firstEmptyBackpackSlot) {
     this.items[item.name].backpackSlots = {};
     this.items[item.name].backpackSlots[this.firstEmptyBackpackSlot] = amount;
@@ -171,26 +271,29 @@ Inventory.prototype.mergeItemIntoBackpack = function(item, amount) {
       amount = 0;
     }
   }
-  
+*/
+ 
   return amount;
 }
 
-Inventory.prototype.takeItemFromBackpack = function(item, amount) {
+Inventory.prototype.takeItemFromInventory = function(item, amount) {
   var indices = [];
-  for (var prop in this.items[item.name].backpackSlots) {
-    indices.push(prop);
+  for (var prop in this.items[item.name].InventorySlots) {
+    for (var slot in this.items[item.name].InventorySlots[prop]) {
+      indices.push({ location: prop, slot: slot });
+    }
   }
   
   for (var i = indices.length - 1; i >= 0; i--) {
     var index = indices[i];
-    var stackAmount = this.items[item.name].backpackSlots[index];
+    var stackAmount = this.items[item.name].InventorySlots[index.location][index.slot];
     var newAmount = stackAmount - amount;
     if (newAmount > 0) {
-      this.items[item.name].backpackSlots[index] = newAmount;
+      this.items[item.name].InventorySlots[index.location][index.slot] = newAmount;
       return;
     }
     else {
-      this.items[item.name].backpackSlots[index] = 0;     
+      this.items[item.name].InventorySlots[index.location][index.slot] = 0;     
       if (newAmount == 0) {
         return;
       }
@@ -200,13 +303,29 @@ Inventory.prototype.takeItemFromBackpack = function(item, amount) {
   }
 }
 
-Inventory.prototype.sortBackpack = function() {
+Inventory.prototype.sortInventory = function() {
   var arrNames = [];
-  for (var prop in this.backpackSlotNameMap) {
-    arrNames.push(this.backpackSlotNameMap[prop]);
+  for (var prop in this.items) {
+    delete this.items[prop].InventorySlots;
+    if (this.items[prop].amount > 0) {
+      arrNames.push(prop);
+    }
   }
   
   arrNames.sort();
+  
+  for (var loc in this.Locations) {
+    this.Locations[loc].SlotNameMap = {};
+    this.Locations[loc].firstEmptySlot = 1;
+  }
+  
+  for (var i = 0; i < arrNames.length; i++) {
+    var itemName = arrNames[i];
+    var amount = this.items[itemName].amount;
+    this.mergeItemIntoInventory(this.items[itemName].Item, amount);
+  }
+   /*
+
   
   this.backpackSlotNameMap = {};
   for (var i = 0; i < arrNames.length; ) {
@@ -222,11 +341,14 @@ Inventory.prototype.sortBackpack = function() {
     
     this.items[itemName].backpackSlots = newSlots;
   }
+  
+  this.determineNextAvailableBackpackSlot();
+  */
 }
 
 Inventory.prototype.removeItem = function(item, amount) {
   this.items[item.name].amount -= amount;
-  this.takeItemFromBackpack(item, amount);
+  this.takeItemFromInventory(item, amount);
 }
 
 Inventory.prototype.mergeItem = function(item, amount) {
@@ -242,7 +364,7 @@ Inventory.prototype.mergeItem = function(item, amount) {
     }
   }
 
-  var unmerged = this.mergeItemIntoBackpack(item, amount);
+  var unmerged = this.mergeItemIntoInventory(item, amount);
   this.items[item.name].amount += (amount - unmerged);
 
   if (unmerged > 0) {
@@ -604,16 +726,16 @@ Inventory.getMoneyString = function(money) {
   return moneyString;
 }
 
-Inventory.prototype.getIcon = function(item, index) {
+Inventory.prototype.getIcon = function(item, loc, index) {
 
-  var id = 'i' + index + '_icon';
+  var id = 'i' + loc + index + '_icon';
   var d = $('#' + id);
   if (d.length) {
     return d;
   }
 
   d = $('<div/>', {
-            id: 'i' + index + '_icon',
+            id: 'i' + loc + index + '_icon',
             class: 'inventoryIcon',
             style: 'background-image: ' + 'url(\'' + item.image + '\');',
 
@@ -641,10 +763,10 @@ Inventory.prototype.getIcon = function(item, index) {
     t.hide();
   }
   
-  d.mouseenter({ item: this.items[item.name], index: index }, function(e)
+  d.mouseenter({ item: this.items[item.name], loc: loc, index: index }, function(e)
   {
     $(this).children('.tooltip').remove();
-    $(this).append(Inventory.getTooltip(item, e.data.item.amount, e.data.item.backpackSlots[index]));
+    $(this).append(Inventory.getTooltip(item, e.data.item.amount, e.data.item.InventorySlots[e.data.loc][e.data.index]));
   });
   
   d.mousemove(function(e)
@@ -658,60 +780,47 @@ Inventory.prototype.getIcon = function(item, index) {
     $(this).removeClass('highlight');
     hideToolip($(this));
   });
-
-  var sellStack = function(index, sellStack, sellAll) {
-    var g = window.game;
-    var p = g.player;
-    var inv = p.inventory;
-    var itemName = inv.backpackSlotNameMap[index];
-
-    if (sellAll) {
-      for (var prop in inv.items[itemName].backpackSlots) {
-        var amount = inv.items[itemName].backpackSlots[prop];
-        p.sellItemByName(itemName, amount);
-        inv.items[itemName].backpackSlots[prop] -= amount ;
-        inv.items[itemName].amount -= amount;
-      }
-    }
-    else {
-      var amount = sellStack ? inv.items[itemName].backpackSlots[index] : 1;
-      p.sellItemByName(itemName, amount);
-      inv.items[itemName].backpackSlots[index] -= amount ;
-      inv.items[itemName].amount -= amount;
-    }
-    
-    g.drawInventory();
-    g.drawRecipes();
-  }
-
-  var shiftClick = function(index) {
-    /*
-    var itemInInventory = item.inventoryIndex >= 0;
-
-    if (itemInInventory) {
-      var g = window.game;
-      var p = g.player;
-      p.sellItem(item);
-      g.removeItemFromInventory(item);
-    }
-    */
-  }
-
-  d.mousedown({ index: index }, function(e) {
+  
+  d.mousedown({ Locations: this.Locations, loc: loc, index: parseInt(index) }, function(e) {
     switch (e.which) {
         case 1: // left
-          if (e.shiftKey) {
-            shiftClick(e.data.index);
+          if (e.shiftKey && e.data.Locations[e.data.loc].lastSelectedSlot) {
+            var index = e.data.index;
+            while (index != e.data.Locations[e.data.loc].lastSelectedSlot) {
+              var $icon = $('#i' + e.data.loc + index + '_icon');
+              $icon.addClass('selected');
+              if (index > e.data.Locations[e.data.loc].lastSelectedSlot) {
+                index--;
+              }
+              else {
+                index++;
+              }
+            }
+            
+            e.data.Locations[e.data.loc].lastSelectedSlot = e.data.index;
+          }
+          else {
+            var $icon = $('#i' + e.data.loc + e.data.index + '_icon');
+            if ($icon.hasClass('selected')) {
+              $icon.removeClass('selected');
+              if (e.data.index == e.data.Locations[e.data.loc].lastSelectedSlot) {
+                e.data.Locations[e.data.loc].lastSelectedSlot = 0;
+              }
+            }
+            else {
+              e.data.Locations[e.data.loc].lastSelectedSlot = e.data.index;
+              $icon.addClass('selected');
+            }
           }
           break;
         case 2: // middle
           break;
         case 3: // right
-            sellStack(e.data.index, e.shiftKey, e.shiftKey && e.ctrlKey);
           break;
         default:
     }
   });
+  
 
   return d;
 }
@@ -732,17 +841,12 @@ Inventory.getTooltip = function(item, amount, stackSize) {
   }
   
   $('<p/>', {
-    text: 'Sells for ' + Inventory.getMoneyString(item.sellValue),
-    class: 'recipeSellsFor'
+    text: 'Current inventory: ' + amount
   }).appendTo($div);
   
   $('<p/>', {
     text: 'Stack sells for ' + Inventory.getMoneyString(stackSize * item.sellValue),
     class: 'recipeSellsFor'
-  }).appendTo($div);
-  
-  $('<p/>', {
-    text: 'Current inventory of ' + amount + (amount > stackSize ? ' sells for ' + Inventory.getMoneyString(amount * item.sellValue) : '')
   }).appendTo($div);
 
   return $div;

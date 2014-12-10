@@ -728,9 +728,12 @@ Game.prototype.clearInventory = function() {
   var p = g.player;
   var inv = p.inventory;
   
-  for (var i = 0; i <= inv.maxSize; i++) {
-    var $invTd = $('#i' + i);
-    $invTd.empty();
+  for (var loc in inv.Locations) {
+    var location = inv.Locations[loc];
+    for (var i = 0; i <= location.maxSize; i++) {
+      var $invTd = $('#i' + loc + i);
+      $invTd.empty();
+    }
   }
 }
 
@@ -740,6 +743,43 @@ Game.prototype.drawInventory = function() {
   var inv = p.inventory;
   
   g.drawMoney();
+  
+  for (var loc in inv.Locations) {
+    var location = inv.Locations[loc];
+    for (var index in location.SlotNameMap) {
+      var itemName = location.SlotNameMap[index];
+      var item = inv.items[itemName];
+      var amount = item.InventorySlots[loc][index];
+      
+      var isNew = false;
+      if (!$('#i' + loc + index + '_icon').length) {
+        isNew = true;
+      }
+      
+      var $invTd = $('#i' + loc + index);
+      if (isNew) {
+        inv.getIcon(item.Item, loc, index).append($('<div/>',
+          {
+            id: 'i' + loc + index + '_amount',
+            text: amount,
+            class: 'inventoryAmount'
+          })).appendTo($invTd);
+      }
+      else {
+        var $amount = $('#i' + loc + index + '_amount');
+        
+        if (amount == 0) {
+          $invTd.empty();
+          delete inv.Locations[loc].SlotNameMap[index];
+          delete inv.items[itemName].InventorySlots[loc][index];
+          inv.determineNextAvailableBackpackSlot(loc);
+        }
+        else {
+          $amount.text(amount);
+        }
+      }
+    }
+  }
 
   for (var index in inv.backpackSlotNameMap) {
     var itemName = inv.backpackSlotNameMap[index];
@@ -776,6 +816,44 @@ Game.prototype.drawInventory = function() {
   }
 }
 
+Game.prototype.sellSelected = function() {
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+  
+  for (var loc in inv.Locations) {
+    var location = inv.Locations[loc];
+    for (var slot in location.SlotNameMap) {
+      var $invIcon = $('#i' + loc + slot + '_icon');
+      if ($invIcon.length && $invIcon.hasClass('selected')) {
+        var itemName = location.SlotNameMap[slot];
+        var amount = inv.items[itemName].InventorySlots[loc][slot];
+        p.sellItemByName(itemName, amount);
+        inv.items[itemName].InventorySlots[loc][slot] -= amount ;
+        inv.items[itemName].amount -= amount;
+      }
+    }
+  }
+  
+  g.drawInventory();
+  g.drawRecipes();
+}
+
+Game.prototype.clearSelection = function() {
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+  
+  for (var loc in inv.Locations) {
+    var location = inv.Locations[loc];
+    for (var slot in location.SlotNameMap) {
+      var $invIcon = $('#i' + loc + slot + '_icon');
+      if ($invIcon.length && $invIcon.hasClass('selected')) {
+        $invIcon.removeClass('selected')
+      }
+    }
+  }
+}
 
 Game.prototype.drawInventoryOld = function() {
   var g = window.game;
@@ -1141,6 +1219,90 @@ createTimeString = function(time) {
   return ret;
 }
 
+showTab = function(location) {
+  var $active = $('#inventoryTabs li.active');
+  var activeLoc = $active.text();
+  $('#inventory' + activeLoc + 'Table').hide();
+  $active.removeClass('active');
+  $('#inventoryTab' + location).addClass('active');
+  $('#inventory' + location + 'Table').show();
+}
+
+drawInitialBackpack = function() {
+  var g = window.game;
+  var p = g.player;
+  var inv = p.inventory;
+  
+  var $div = $('<div/>', { id: 'inventory' });
+  $div.append($('<div/>', { class: 'inventoryHeader', text: 'Inventory' }));
+  
+  var $tabs = $('<div/>');
+  var $ul = $('<ul/>', { id: 'inventoryTabs' });
+  $tabs.append($ul);
+  $div.append($tabs);
+
+  /*
+  $tabs.append(
+    $('<ul/>', { id: 'inventoryTabs' })
+      .append($('<li />', { class: 'active' })
+        .append($('<a/>', { href: '#backpack', text: 'Backpack' }))
+      )
+    );
+    */
+  var count = 1;
+  for (var prop in inv.Locations) {
+    var location = inv.Locations[prop];
+    $li = $('<li/>', { id: 'inventoryTab' + prop });
+    if (count == 1) {
+      $li.addClass('active');
+    }
+    
+    $li.append($('<a/>', { href: '#' + prop, text: prop }));
+    $ul.append($li);
+  
+    var cols = Math.floor(location.maxSize / 4);
+    var rows = Math.ceil(location.maxSize / cols);
+  
+    var $divInventories = $('<div/>', { id: 'divInventories' });
+    var $divLoc = $('<div/>', { id: 'inventory' + prop });
+    var $table = $('<table/>', { id: 'inventory' + prop + 'Table', class: 'inventoryTable' });
+    $table.append($('<tbody/>'));
+
+    for (var r = 0; r < rows; r++) {
+      var $tr = $('<tr/>');
+      for (var c = 0; c < cols; c++) {
+        var id = r * cols + c + 1;
+        var $td = $('<td/>', { id: 'i' + prop + id, html: '' });
+        $tr.append($td);
+      }
+      $table.append($tr);
+    }
+    
+    if (count > 1) {
+      $table.hide();
+    }
+    
+    $divInventories.append($divLoc);
+    $divLoc.append($table);
+    $div.append($divLoc);
+    count++;
+  }
+  
+  var $divFooter = $('<div/>', { id: 'inventoryFooter' });
+  $divFooter.append($('<div/>', { class: 'floatLeft' })
+    .append($('<a/>', { href: '#', id: 'sortInventory', text: 'Sort' }))
+    .append($('<span/>', { text: ' | ' }))
+    .append($('<a/>', { href: '#', id: 'sellSelected', text: 'Sell selected' }))
+    .append($('<span/>', { text: ' | ' }))
+    .append($('<a/>', { href: '#', id: 'clearSelection', text: 'Clear selection' }))
+  )
+    
+  $divFooter.append($('<div/>', { id: 'money' }))
+  $div.append($divFooter);
+  
+  return $div;
+}
+
 $(document).ready(function() {
   $('body')
     .bind("contextmenu", function(e) { return false; })
@@ -1153,6 +1315,16 @@ $(document).ready(function() {
     })
     .each(function() { 
       this.onselectstart = function() { return false; };
+  });
+  
+  $('#rightCol').prepend(drawInitialBackpack());
+  
+  $('#inventoryTabs li a').each(function()
+  {
+    $(this).click(function()
+    {
+      showTab($(this).html());
+    })
   });
 
   game.drawLevel();
@@ -1182,7 +1354,9 @@ $(document).ready(function() {
   
   $('#save').click(function() { game.save(); });
   $('#load').click(function() { game.load(true); });
-  $('#sortBackpack').click(function() { game.player.inventory.sortBackpack(); game.clearInventory(); game.drawInventory(); });
+  $('#sortInventory').click(function() { game.player.inventory.sortInventory(); game.clearInventory(); game.drawInventory(); });
+  $('#sellSelected').click(function() { game.sellSelected(); });
+  $('#clearSelection').click(function() { game.clearSelection(); });
   $('#reset').click(function() { game.reset(); });
   $('#export').click(function() { game.export(); });
   $('#import').click(function() { game.import(); });

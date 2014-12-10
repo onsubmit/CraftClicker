@@ -2,6 +2,7 @@ var ItemType = {
   Pick : "Picks",
   Forge: "Forges",
   Bar: "Bars",
+  Compression: "Compression",
   Other: "Other"
 }
 
@@ -129,6 +130,63 @@ Items["Stick"] = {
     [
       { resource: Resources["Wood"], amount: 2 }
     ]
+  }
+}
+
+Items["Compressed Stone"] = {
+  type: ItemType.Compression,
+  Recipe: {
+    craftTime: 0.25,
+    xpModifier: 0,
+    Requirements:
+    [
+      { resource: Resources["Stone"], amount: Resources["Stone"].stackSize }
+    ]
+  }
+}
+
+for (var i = 2; i <= 8; i++) {
+  var previousStone = "Compressed Stone" + (i == 2 ? '' : ' ' + 'x' + (i - 1));
+  Items["Compressed Stone " + 'x' + i] = {
+    type: ItemType.Compression,
+    Recipe: {
+      craftTime: 0.25,
+      Requirements:
+      [
+        { resource: Items[previousStone], amount: Resources["Stone"].stackSize }
+      ]
+    }
+  }
+}
+
+Items["Stone"] = {
+  type: ItemType.Compression,
+  Recipe: {
+    craftTime: 0.25,
+    xpModifier: 0,
+    makes: 64,
+    Requirements:
+    [
+      { resource: Items["Compressed Stone"], amount: 1 }
+    ]
+  }
+}
+
+for (var i = 8; i >= 2; i--) {
+  var currentStone = "Compressed Stone x" + i;
+  var previousStone = "Compressed Stone" + (i == 2 ? '' : ' x' + (i - 1));
+  Items["Break " + currentStone] = {
+    type: ItemType.Compression,
+    Recipe: {
+      craftTime: 0.25,
+      xpModifier: 0,
+      makes: Resources["Stone"].stackSize,
+      Output: Items[previousStone],
+      Requirements:
+      [
+        { resource: Items[currentStone], amount: 1 }
+      ]
+    }
   }
 }
 
@@ -347,6 +405,19 @@ Items["Steel Pick"] = {
 improvePick(Items["Steel Pick"], Items["Gold Pick"]);
 Items["Steel Pick"].LootModifiers["Lead Ore"] = 1;
 
+Items["Compressed Stone"].Recipe.unlockedBy = Items["Wooden Pick"];
+for (var i = 2; i <= 8; i++) {
+  var previousStone = "Compressed Stone" + (i == 2 ? '' : ' ' + 'x' + (i - 1));
+  Items["Compressed Stone " + 'x' + i].Recipe.unlockedBy = Items[previousStone];
+  
+}
+
+for (var i = 8; i >= 2; i--) {
+  var currentStone = "Compressed Stone x" + i;
+  Items["Break " + currentStone].Recipe.unlockedBy = Items[currentStone];
+}
+
+Items["Stone"].Recipe.unlockedBy = Items["Compressed Stone"];
 Items["Copper Bar"].Recipe.unlockedBy = Items["Stone Pick"];
 Items["Iron Bar"].Recipe.unlockedBy = Items["Stone Pick"];
 Items["Tin Bar"].Recipe.unlockedBy = Items["Cast Iron Pick"];
@@ -450,7 +521,7 @@ for (var prop in Items) {
   if (Items.hasOwnProperty(prop)) {
     var item = Items[prop];
     item.name = prop;
-    item.id = item.name.replace(/ /g, '');
+    item.id = item.name.replace(/([^A-Za-z0-9])/g, '');
     
     determineImages(item);
     determineStackSize(item);

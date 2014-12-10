@@ -77,6 +77,10 @@ Player.prototype.queueRecipes = function() {
 Player.prototype.addXP = function(recipe, xpModifier) {
   var diff = this.determineRecipeDifficulty(recipe);
   var xpPercentIncrease = this.xpPercentages[diff];
+  if (recipe.xpModifier >= 0) {
+    xpPercentIncrease *= recipe.xpModifier;
+  }
+  
   if (xpPercentIncrease > 0) {
     this.xp += Math.round(xpModifier * this.xpMax * (xpPercentIncrease + 0.05 * Math.random()) / (this.level + 1));
   }

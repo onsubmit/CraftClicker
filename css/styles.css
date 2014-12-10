@@ -16,32 +16,77 @@ div#container {
   margin: 10px;
 }
 
-div#inventory {
-  width: 400px;
+div#rightCol {
   padding-top: 98px;
-  margin-left: 300px;
 }
 
-table#inventoryTable {
+div#inventory {
+  background: url('../images/bg.png');
+  margin-left: 300px;
+  width: 510px;
+  color: #fff;
+  border: 1px solid gray;
+  padding: 2px;
+  box-shadow: 0px 0px 5px #999;
+}
+
+ul#inventoryTabs {
+  padding: 4px;
+  margin: 0;
+  font-size: 0.8em;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+ul#inventoryTabs li {
+  display: inline;
+  background-color: #333;
+  padding: 4px;
+  border-right: 1px solid #fff;
+}
+
+ul#inventoryTabs li.active {
+  background-color: #FF8E46;
+}
+
+ul#inventoryTabs li a {
+  text-decoration: none;
+  text-shadow: 1px 1px #000;
+  padding: 8px;
+}
+
+div#inventory .inventoryHeader {
+  font-size: 0.9em;
+  font-weight: bold;
+  text-align: center;
+}
+
+div#inventoryFooter {
+  font-size: 0.9em;
+  padding: 4px;
+  margin-top: 4px;
+}
+
+table.inventoryTable {
   color: #fff;
 	border-width: 1px;
 	border-spacing: 2px;
 	border-style: solid;
 	border-color: gray;
 	border-collapse: separate;
-  background: url('../images/bg.png');
   box-shadow: 0px 0px 5px #999;
   font-size: 0.8em;
+  empty-cells: show;
 }
 
-table#inventoryTable td {
+table.inventoryTable td {
   border: 1px solid #666;
 	padding: 4px;
   width: 44px;
   height: 54px;
 }
 
-table#inventoryTable td.moneyRow {
+table.inventoryTable td.moneyRow {
 	border: 0;
   padding: 5px;
   width: 100%;
@@ -62,6 +107,10 @@ div.highlight {
   border: 2px solid #ccc;
 }
 
+div.selected {
+  border: 2px solid #0f0;
+}
+
 div.inventoryAmount {
     position: absolute;
     bottom: 0;
@@ -76,9 +125,9 @@ div.tooltip {
   position: fixed;
   white-space: nowrap;
   padding: 5px;
-  border: 2px solid #000;
+  border: 1px solid #ccc;
   background: url('../images/bg.png');
-  opacity: 0.95;
+  opacity: 0.9;
   z-index: 10;
   display: none;
   box-shadow: 0px 0px 20px #999;
@@ -141,7 +190,7 @@ input#haveResources {
 
 div#recipes {
   float: left;
-  margin: 0 30px 30px 0;
+  margin: 0 10px 0 0;
   width: 290px;
   border: 1px solid #999;
   background: url('../images/bg.png');
