@@ -15,7 +15,7 @@ Player.prototype.craft = function(requiredRecipe, xpModifier) {
   var item = requiredRecipe.item;
   this.addXP(item.Recipe, xpModifier);
 
-  if (item.unlocks) {
+  if (Items[item.name].unlocks) {
     // The crafting of this item unlocks the recipes for at least one other item.
     for (var i = 0; i < item.unlocks.length; i++) {
       var itemName = item.unlocks[i];
@@ -23,7 +23,8 @@ Player.prototype.craft = function(requiredRecipe, xpModifier) {
       Items[itemName].Recipe.level = this.level;
     }
 
-    delete item.unlocks;
+     
+    delete Items[item.name].unlocks;
   }
 
   // Consume the resources from the inventory.
