@@ -274,6 +274,10 @@ div#recipeRequirements .recipeUnlocks {
   color: #FF8E46;
 }
 
+div#recipeRequirements .recipeOutput {
+  color: #00DD00;
+}
+
 div#recipeRequirements .recipeSellsFor {
   color: #666;
 }

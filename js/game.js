@@ -633,22 +633,7 @@ Game.prototype.drawRecipes = function() {
         else {
           // Recipe was just unlocked.
           // Add a new row for it.
-          if (!$category.length) {
-            $category = $('<ul/>',
-            {
-              id: catId,
-              class: 'recipeCategory'
-            });
-            
-            $('#recipeCategories').prepend(
-              $('<li/>')
-              .append(
-                $('<span/>',
-                {
-                  text: item.type
-                }))
-              .append($category));
-              
+          if (!$category.is(':visible')) {              
             $('#recipeCategoryFilter option').eq(0)
               .after(
                 $("<option/>",
@@ -658,6 +643,7 @@ Game.prototype.drawRecipes = function() {
                 }));
           }
           
+          $('#rci_' + item.type).fadeIn();
           $category.prepend(
             $('<li/>',
             {
@@ -1037,7 +1023,7 @@ drawRecipeRequirements = function(el) {
     id: 'recipeName'
   });
 
-  if (recipe.makes > 1) {
+  if (recipe.makes > 1 && !recipe.Output) {
     $header.text(item.name + ' (' + recipe.makes + ')');
   }
   else {
@@ -1050,6 +1036,13 @@ drawRecipeRequirements = function(el) {
     id: 'craftTime',
     text: 'Craft time: ' + createTimeString(recipe.craftTime),
   }).appendTo($div);
+  
+  if (recipe.Output) {
+    $('<p/>', {
+      class: 'recipeOutput',
+      text: 'Makes: ' + recipe.Output.Item.name + ' (' + recipe.Output.makes + ')'
+    }).appendTo($div);
+  }
 
   if (item.unlocks) {
     var unlockStr = '';
@@ -1213,10 +1206,40 @@ createTimeString = function(time) {
   }
   
   if (secs > 0) {
-    ret += "" + secs + " second" + (secs != 1 ? "s" : "");
+    if (secs < 1) {
+      var ms = secs * 1000;
+      ret += "" + ms + " millisecond" + (ms != 1 ? "s" : "");
+    }
+    else {
+      ret += "" + secs + " second" + (secs != 1 ? "s" : "");
+    }
   }
 
   return ret;
+}
+
+drawInitialRecipes = function() { 
+  for (var prop in ItemType) {
+    var cat = ItemType[prop];
+    var catId = 'rc_' + cat;
+    var $category = $('<ul/>',
+    {
+      id: catId,
+      class: 'recipeCategory'
+    });
+    
+    $('#recipeCategories').append(
+      $('<li/>',
+      {
+        id: 'rci_' + cat
+      }).hide()
+      .append(
+        $('<span/>',
+        {
+          text: cat
+        }))
+      .append($category));
+  }
 }
 
 showTab = function(location) {
@@ -1228,7 +1251,7 @@ showTab = function(location) {
   $('#inventory' + location + 'Table').show();
 }
 
-drawInitialBackpack = function() {
+drawInitialInventory = function() {
   var g = window.game;
   var p = g.player;
   var inv = p.inventory;
@@ -1317,7 +1340,7 @@ $(document).ready(function() {
       this.onselectstart = function() { return false; };
   });
   
-  $('#rightCol').prepend(drawInitialBackpack());
+  $('#rightCol').prepend(drawInitialInventory());
   
   $('#inventoryTabs li a').each(function()
   {
@@ -1326,7 +1349,8 @@ $(document).ready(function() {
       showTab($(this).html());
     })
   });
-
+  
+  drawInitialRecipes();
   game.drawLevel();
   game.drawMoney();
   game.drawRecipes();

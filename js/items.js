@@ -1,9 +1,10 @@
 var ItemType = {
   Pick : "Picks",
-  Forge: "Forges",
   Bar: "Bars",
+  Forge: "Forges",
+  Other: "Other",
   Compression: "Compression",
-  Other: "Other"
+  Decompression: "Decompression"
 }
 
 improveForge = function(newForge, oldForge, multiplier) {
@@ -151,6 +152,7 @@ for (var i = 2; i <= 8; i++) {
     type: ItemType.Compression,
     Recipe: {
       craftTime: 0.25,
+      xpModifier: 0,
       Requirements:
       [
         { resource: Items[previousStone], amount: Resources["Stone"].stackSize }
@@ -159,29 +161,20 @@ for (var i = 2; i <= 8; i++) {
   }
 }
 
-Items["Stone"] = {
-  type: ItemType.Compression,
-  Recipe: {
-    craftTime: 0.25,
-    xpModifier: 0,
-    makes: 64,
-    Requirements:
-    [
-      { resource: Items["Compressed Stone"], amount: 1 }
-    ]
+for (var i = 8; i >= 1; i--) {
+  var currentStone =  "Compressed Stone" + (i == 1 ? '' : " x" + i);
+  var previousStone = Resources["Stone"];
+  if (i >= 2) {
+    previousStone = Items["Compressed Stone" + (i == 2 ? '' : " x" + (i - 1))];
   }
-}
-
-for (var i = 8; i >= 2; i--) {
-  var currentStone = "Compressed Stone x" + i;
-  var previousStone = "Compressed Stone" + (i == 2 ? '' : ' x' + (i - 1));
+  
   Items["Break " + currentStone] = {
-    type: ItemType.Compression,
+    type: ItemType.Decompression,
     Recipe: {
       craftTime: 0.25,
       xpModifier: 0,
-      makes: Resources["Stone"].stackSize,
-      Output: Items[previousStone],
+      makes: 1,
+      Output: { Item: previousStone, makes: 64 },
       Requirements:
       [
         { resource: Items[currentStone], amount: 1 }
@@ -412,12 +405,11 @@ for (var i = 2; i <= 8; i++) {
   
 }
 
-for (var i = 8; i >= 2; i--) {
-  var currentStone = "Compressed Stone x" + i;
+for (var i = 8; i >= 1; i--) {
+  var currentStone =  "Compressed Stone" + (i == 1 ? '' : " x" + i);
   Items["Break " + currentStone].Recipe.unlockedBy = Items[currentStone];
 }
 
-Items["Stone"].Recipe.unlockedBy = Items["Compressed Stone"];
 Items["Copper Bar"].Recipe.unlockedBy = Items["Stone Pick"];
 Items["Iron Bar"].Recipe.unlockedBy = Items["Stone Pick"];
 Items["Tin Bar"].Recipe.unlockedBy = Items["Cast Iron Pick"];

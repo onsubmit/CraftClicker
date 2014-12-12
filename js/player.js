@@ -22,7 +22,6 @@ Player.prototype.craft = function(requiredRecipe, xpModifier) {
       Items[itemName].Recipe.available = true;
       Items[itemName].Recipe.level = this.level;
     }
-
      
     delete Items[item.name].unlocks;
   }
@@ -118,6 +117,11 @@ Player.prototype.sellAllItems = function() {
 }
 
 Player.prototype.determineRecipeDifficulty = function(recipe) {
+  if (recipe.xpModifier == 0) {
+    // Items with XP modifier == 0 are always grey
+    return 0;
+  }
+
   var diff = this.level - recipe.level;
   if (diff < 5) {
     return 3;

@@ -138,16 +138,15 @@ Inventory.prototype.craft = function(requiredRecipe) {
 }
 
 Inventory.prototype.determineNextAvailableBackpackSlot = function(location) {
-  var index = 0;
+  this.Locations[location].firstEmptySlot = 0;
   for (var i = 1; i <= this.Locations[location].maxSize; i++) {
     if (!this.Locations[location].SlotNameMap[i]) {
       this.Locations[location].firstEmptySlot = i;
-      index = i;
-      break;
+      return i;
     }
   }
   
-  return index;
+  return 0;
 }
 
 Inventory.prototype.mergeItemIntoInventory = function(item, amount) {
@@ -509,10 +508,16 @@ Inventory.prototype.getCraftableAmount = function(recipe, modifiedInventory, max
         // This requirement has its own recipe.
         // The player may be able to craft it with the resources he/she has in their available inventory.
         needAmount = Math.ceil((needAmount - haveAmount) / req.resource.Recipe.makes);
+        
+        // Temporarily reserve all the resources.
+        modifiedInventory[req.resource.name] = 0;
         var reqCraftableAmount = this.getCraftableAmount(req.resource.Recipe, modifiedInventory, needAmount);
         
-        if (reqCraftableAmount + haveAmount < needAmount) {
-          // The player does not have the necessary resources to craft the requirement. Return.
+        if (reqCraftableAmount < needAmount) {
+          // The player does not have the necessary resources to craft the requirement.
+          
+          // Release the previously reserved resources.
+          modifiedInventory[req.resource.name] = haveAmount;
           return craftableAmount;
         }
         
