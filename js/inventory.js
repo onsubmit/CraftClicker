@@ -213,7 +213,7 @@ Inventory.prototype.mergeItemIntoInventory = function(item, amount) {
     // Find the first empty slot.
     for (var prop in this.Locations) {
       var index = this.determineNextAvailableBackpackSlot(prop);
-      while (index) {
+      while (index && amount > 0) {
         if (!this.items[item.name].InventorySlots[prop]) {
           this.items[item.name].InventorySlots[prop] = {};
         }
