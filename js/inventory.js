@@ -641,10 +641,10 @@ Inventory.prototype.getIcon = function(item, index) {
     t.hide();
   }
   
-  d.mouseenter({ item: this.items[item.name], index: index }, function(e)
+  d.mouseenter({ item: this.items[item.name] }, function(e)
   {
     $(this).children('.tooltip').remove();
-    $(this).append(Inventory.getTooltip(item, e.data.item.amount, e.data.item.backpackSlots[index]));
+    $(this).append(Inventory.getTooltip(item, e.data.item.amount));
   });
   
   d.mousemove(function(e)
@@ -659,27 +659,16 @@ Inventory.prototype.getIcon = function(item, index) {
     hideToolip($(this));
   });
 
-  var sellStack = function(index, sellStack, sellAll) {
+  var sellStack = function(index, sellAll) {
     var g = window.game;
     var p = g.player;
     var inv = p.inventory;
-    var itemName = inv.backpackSlotNameMap[index];
-
-    if (sellAll) {
-      for (var prop in inv.items[itemName].backpackSlots) {
-        var amount = inv.items[itemName].backpackSlots[prop];
-        p.sellItemByName(itemName, amount);
-        inv.items[itemName].backpackSlots[prop] -= amount ;
-        inv.items[itemName].amount -= amount;
-      }
-    }
-    else {
-      var amount = sellStack ? inv.items[itemName].backpackSlots[index] : 1;
-      p.sellItemByName(itemName, amount);
-      inv.items[itemName].backpackSlots[index] -= amount ;
-      inv.items[itemName].amount -= amount;
-    }
     
+    var itemName = inv.backpackSlotNameMap[index];
+    var amount = sellAll ? inv.items[itemName].backpackSlots[index] : 1;
+    p.sellItemByName(itemName, amount);
+    inv.items[itemName].backpackSlots[index] -= amount ;
+    inv.items[itemName].amount -= amount;
     g.drawInventory();
   }
 
@@ -706,7 +695,7 @@ Inventory.prototype.getIcon = function(item, index) {
         case 2: // middle
           break;
         case 3: // right
-            sellStack(e.data.index, e.shiftKey, e.shiftKey && e.ctrlKey);
+            sellStack(e.data.index, e.shiftKey);
           break;
         default:
     }
@@ -715,34 +704,11 @@ Inventory.prototype.getIcon = function(item, index) {
   return d;
 }
 
-Inventory.getTooltip = function(item, amount, stackSize) {
-  var $div = $('<div/>', {
-              class: 'tooltip',
-             });
-          
-  $('<h3/>', {
-    text: item.name
-  }).appendTo($div);
-  
-  if (item.text) {
-    $('<p/>', {
-      text: item.text
-    }).appendTo($div);
-  }
-  
-  $('<p/>', {
-    text: 'Sells for ' + Inventory.getMoneyString(item.sellValue),
-    class: 'recipeSellsFor'
-  }).appendTo($div);
-  
-  $('<p/>', {
-    text: 'Stack sells for ' + Inventory.getMoneyString(stackSize * item.sellValue),
-    class: 'recipeSellsFor'
-  }).appendTo($div);
-  
-  $('<p/>', {
-    text: 'Current inventory of ' + amount + (amount > stackSize ? ' sells for ' + Inventory.getMoneyString(amount * item.sellValue) : '')
-  }).appendTo($div);
+Inventory.getTooltip = function(item, amount) {
+  var t = $('<div/>', {
+            class: 'tooltip',
+            text: item.name + ' (' + amount + ')'
+          });
 
-  return $div;
+  return t;
 }
