@@ -12,9 +12,12 @@
   <body>
     <div id="container">
     <div class="floatRight">
+      <span><input id="autosave" type="checkbox" checked="checked" /><label for="autosave">Autosave</label></span>
       <button id="save">Save</button>
       <button id="load">Load</button>
-      <p style="text-align: right; margin-top: 10px;"><input id="autosave" type="checkbox" checked="checked" /><label for="autosave">Autosave</label></p>
+      <button id="export">Export</button>
+      <button id="import">Import</button>
+      <button id="reset">Reset</button>
     </div>
       <div class="floatLeft">
         <div id="gatherActions">
@@ -114,18 +117,39 @@
             </tbody>
           </table>
         </div>
-      </div>
-      <div id="help">
-        <h4>Keyboard shortcuts</h4>
-        <p>'g': Gather resources</p>
-        <p>'[Space]': Craft selected recipe (or cancel if crafting)</p>
-        <p>'a': Craft all of selected recipe</p>
-        <p>'1-9': Craft <i>n</i> of selected</p>
-      </div>
-      <div class="floatRight">
-        <button id="export">Export</button>
-        <button id="import">Import</button>
-        <button id="reset">Reset</button>
+        <div id="help">
+          <h4>Shortcuts</h4>
+          <table>
+            <tr>
+              <td class="key">g</td>
+              <td>Gather resources</td>
+            </tr>
+            <tr>
+              <td class="key">[Space]</td>
+              <td>Craft selected recipe (or cancel if crafting)</td>
+            </tr>
+            <tr>
+              <td class="key">a</td>
+              <td>Craft all of selected recipe</td>
+            </tr>
+            <tr>
+              <td class="key">1-9</td>
+              <td>Craft <i>n</i> of selected</td>
+            </tr>
+            <tr>
+              <td class="key">Right click</td>
+              <td>Sell 1 from backpack</td>
+            </tr>
+            <tr>
+              <td class="key">Shift+right click</td>
+              <td>Sell stack from backpack</td>
+            </tr>
+            <tr>
+              <td class="key">Ctrl+Shift+right click</td>
+              <td>Sell all from backpack</td>
+            </tr>
+          </table>
+        </div>
       </div>
       <div id="exportContainer" class="floatRight">
         <a id="exportHide" href="#" class="darkLink">Hide</a><br />
