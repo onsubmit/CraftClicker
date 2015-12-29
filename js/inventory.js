@@ -1,8 +1,6 @@
 function Inventory() {
-  this.maxSize = 16;
+  this.size = 0;
   this.items = {};
-  this.firstEmptyBackpackSlot = 1;
-  this.backpackSlotNameMap = {};
   this.reserved = {};
   this.forges = [];
   this.maxNumForges = 4;
@@ -82,7 +80,7 @@ Inventory.prototype.craft = function(requiredRecipe) {
         // Move as many forges from the inventory to the forge array as we can. 
         if (reqForge && this.forges.length < this.maxNumForges) {
           while (this.items[reqForge.name] && this.items[reqForge.name].amount > 0 && this.forges.length < this.maxNumForges) {
-            this.removeItem(reqForge, 1);
+            this.items[reqForge.name].amount -= 1;
             this.forges.push(reqForge);
           }
         }
@@ -95,10 +93,9 @@ Inventory.prototype.craft = function(requiredRecipe) {
     var isPick = item.type && item.type == ItemType.Pick;
     if (isPick) {
       if (!this.pick || this.pick.level < item.level) {
-        var unmerged = 0;
         if (this.pick) {
           // Auto equip new pick if it's higher level than the current one.
-          unmerged = this.mergeItem(this.pick, 1);
+          this.mergeItem(this.pick, 1);
         }
         
         this.pick = {
@@ -116,125 +113,73 @@ Inventory.prototype.craft = function(requiredRecipe) {
         $('#gather').prop("src", this.pick.image);
         $('#currentPick').text(this.pick.name);
         
-        return unmerged;
-      }
-    }
-    
-    // Put the item into the inventory.
-    // The item could be a forge if the forge array was full.
-    return this.mergeItem(item, makes);
-  }
-}
-
-Inventory.prototype.determineNextAvailableBackpackSlot = function() {
-  var index = 0;
-  for (var i = 1; i <= this.maxSize; i++) {
-    if (!this.backpackSlotNameMap[i]) {
-      index = i;
-      break;
-    }
-  }
-  
-  this.firstEmptyBackpackSlot = index;
-}
-
-Inventory.prototype.mergeItemIntoBackpack = function(item, amount) {
-  if (!this.items[item.name].backpackSlots && this.firstEmptyBackpackSlot) {
-    this.items[item.name].backpackSlots = {};
-    this.items[item.name].backpackSlots[this.firstEmptyBackpackSlot] = amount;
-    this.backpackSlotNameMap[this.firstEmptyBackpackSlot] = item.name;
-    this.determineNextAvailableBackpackSlot();
-    amount = 0;
-  }
-  else {
-    for (var prop in this.items[item.name].backpackSlots) {
-      var stackAmount = this.items[item.name].backpackSlots[prop];
-      if (stackAmount < item.stackSize) {
-        var newAmount = stackAmount + amount;
-        if (newAmount <= item.stackSize) {
-          this.items[item.name].backpackSlots[prop] = newAmount;
-          amount = 0;
-        }
-        else {
-          this.items[item.name].backpackSlots[prop] = item.stackSize;
-          this.determineNextAvailableBackpackSlot();
-          amount = newAmount - item.stackSize;
-        }
-      }
-    }
-    
-    if (amount > 0 && this.firstEmptyBackpackSlot) {
-      // TODO: What if difference > item.stackSize?
-      this.items[item.name].backpackSlots[this.firstEmptyBackpackSlot] = amount;
-      this.backpackSlotNameMap[this.firstEmptyBackpackSlot] = item.name;
-      this.determineNextAvailableBackpackSlot();
-      amount = 0;
-    }
-  }
-  
-  return amount;
-}
-
-Inventory.prototype.takeItemFromBackpack = function(item, amount) {
-  var indices = [];
-  for (var prop in this.items[item.name].backpackSlots) {
-    indices.push(prop);
-  }
-  
-  for (var i = indices.length - 1; i >= 0; i--) {
-    var index = indices[i];
-    var stackAmount = this.items[item.name].backpackSlots[index];
-    var newAmount = stackAmount - amount;
-    if (newAmount > 0) {
-      this.items[item.name].backpackSlots[index] = newAmount;
-      return;
-    }
-    else {
-      this.items[item.name].backpackSlots[index] = 0;     
-      if (newAmount == 0) {
         return;
       }
+    }
+    
+    var inventoryItem = this.items[item.name];
+    if (inventoryItem && inventoryItem.keep >= 0 && inventoryItem.amount + makes > inventoryItem.keep) {
+      // Crafting this item will exceed the amount the player wishes to keep.
+      // Sell any extra.
+      var numToSell = inventoryItem.amount + makes - inventoryItem.keep;
+      var numToPutIntoInventory = makes - numToSell;
+      if (numToPutIntoInventory > 0) {
+        this.mergeItem(item, numToPutIntoInventory);
+      }
       
-      amount = 0 - newAmount;
+      return numToSell;
+    }
+    else {
+    // Put the item into the inventory.
+    // The item could be a forge if the forge array was full.
+    this.mergeItem(item, makes); 
+    return 0;
     }
   }
 }
 
-Inventory.prototype.removeItem = function(item, amount) {
-  this.items[item.name].amount -= amount;
-  this.takeItemFromBackpack(item, amount);
+Inventory.prototype.mergeDrops = function(drops) {
+  for (var prop in drops) {
+    if(drops.hasOwnProperty(prop)) {
+      var drop = drops[prop];
+      this.mergeItem(drop.item, drop.amount);
+    }
+  }
 }
 
 Inventory.prototype.mergeItem = function(item, amount) {
-  if (!this.items[item.name]) {
+  if (this.items[item.name]) {
+    this.items[item.name].amount += amount;
+    if (item.durability) {
+      this.items[item.name].durabilities.push(item.durability);
+    }
+  }
+  else {
+    this.size++;
     this.items[item.name] = 
     {
       Item: item,
-      amount: 0
+      amount: amount
     };
     
     if (item.durability) {
-      this.items[item.name].durabilities = [];
+      this.items[item.name].durabilities = [item.durability];
     }
   }
-
-  var unmerged = this.mergeItemIntoBackpack(item, amount);
-  this.items[item.name].amount += (amount - unmerged);
-
-  if (unmerged > 0) {
-    return unmerged;
-  }
-  
-  if (item.durability) {
-    this.items[item.name].durabilities.push(item.durability);
-  }
-
-  return 0;
 }
 
 Inventory.prototype.mergeItemByName = function(name, amount) {
-  var item = Items[name] || Resources[name];
-  return this.mergeItem(item, amount);
+  if (this.items[name]) {
+    this.items[name].amount += amount;
+  }
+  else {
+    this.size++;
+    this.items[name] = 
+    {
+      Item: Items[name] || Resources[name],
+      amount: amount
+    };
+  }
 }
 
 Inventory.prototype.mergeIntoReserved = function(list, item, amount) {
@@ -515,20 +460,20 @@ Inventory.prototype.buildRecipeTree = function(item, multiplier, parent) {
             if (numForgesInInventory >= remainingToConsume) {
               // The player has enough forges in their inventory.
               // Remove them from the inventory.
-              this.removeItem(res, remainingToConsume);
+              this.items[res.name].amount -= remainingToConsume;
             }
             else {
               // The player does not have enough forges in their inventory.
               // Remove any from the inventory and craft the remainder.
               if (this.items[res.name]) {
-                this.removeItem(res, this.items[res.name].amount);
+                this.items[res.name].amount = 0;
               }
             }
           }
         }
         else {
           // Remove them from the player's inventory.
-          this.removeItem(res, reservedAmount);
+          this.items[res.name].amount -= reservedAmount;
           
           // Keep track of all reserved resources.
           if (!this.reserved[res.name]) {
@@ -578,114 +523,4 @@ Inventory.getMoneyString = function(money) {
   moneyString += moneyString.length > 0 ? (copper > 0 ? copper + 'c' : '') : copper + 'c';
 
   return moneyString;
-}
-
-Inventory.prototype.getIcon = function(item, index) {
-
-  var id = 'i' + index + '_icon';
-  var d = $('#' + id);
-  if (d.length) {
-    return d;
-  }
-
-  d = $('<div/>', {
-            id: 'i' + index + '_icon',
-            class: 'inventoryIcon grabbable',
-            style: 'background-image: ' + 'url(\'' + item.image + '\');',
-
-        });
-
-  var showToolip = function(icon, e) {
-    var t = icon.children('.tooltip');
-
-    var left = e.pageX + 10;
-    var top = e.pageY + 10;
-
-    if (left + t.width() > $(window).width() - 20) {
-      left = e.pageX - t.width() - 10;
-    }
-
-    if (top + t.height() > $(window).height() - 20) {
-      top = e.pageY - t.height() - 10;
-    }
-
-    t.show().css('left', left).css('top', top);
-  }
-
-  var hideToolip = function(icon) {
-    var t = icon.children('.tooltip');
-    t.hide();
-  }
-  
-  d.mouseenter({ item: this.items[item.name] }, function(e)
-  {
-    $(this).children('.tooltip').remove();
-    $(this).append(Inventory.getTooltip(item, e.data.item.amount));
-  });
-  
-  d.mousemove(function(e)
-  {
-    $(this).addClass('highlight');
-    showToolip($(this), e);
-  });
-  
-  d.mouseout(function()
-  {
-    $(this).removeClass('highlight');
-    hideToolip($(this));
-  });
-
-  var rightClick = function() {
-    var g = window.game;
-    /*
-    var itemInInventory = item.inventoryIndex >= 0;
-
-    if (itemInInventory) {
-      g.equipItemFromInventory(item);
-    }
-    else {
-      g.unEquipItem(item);
-    }
-    */
-  }
-
-  var shiftClick = function() {
-    /*
-    var itemInInventory = item.inventoryIndex >= 0;
-
-    if (itemInInventory) {
-      var g = window.game;
-      var p = g.player;
-      p.sellItem(item);
-      g.removeItemFromInventory(item);
-    }
-    */
-  }
-
-  d.mousedown(function(e) {
-    switch (e.which) {
-        case 1: // left
-          if (e.shiftKey) {
-            shiftClick();
-          }
-          break;
-        case 2: // middle
-          break;
-        case 3: // right
-            rightClick();
-          break;
-        default:
-    }
-  });
-
-  return d;
-}
-
-Inventory.getTooltip = function(item, amount) {
-  var t = $('<div/>', {
-            class: 'tooltip',
-            text: item.name + ' (' + amount + ')'
-          });
-
-  return t;
 }

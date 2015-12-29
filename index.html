@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>CraftClicker 1.38 beta</title>
+    <title>CraftClicker 1.37 beta</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/inventory.js"></script>
     <script type="text/javascript" src="js/player.js"></script>
@@ -32,6 +32,7 @@
                 <div id="experienceBarText" class="smallBar smallBarText"></div>
             </div>
           </div>
+          <div id="money"></div>
           <div id="recipeFilters">
             <select id="recipeCategoryFilter" onchange="game.drawRecipes();">
               <option value="All">All Categories</option>
@@ -75,47 +76,6 @@
             </tbody>
           </table>
         </div>
-        
-        
-        <table id="inventoryTable2">
-          <thead>
-            <tr>
-              <th colspan="4">Backpack</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td id="i1"></td>
-              <td id="i2"></td>
-              <td id="i3"></td>
-              <td id="i4"></td>
-            </tr>
-            <tr>
-              <td id="i5"></td>
-              <td id="i6"></td>
-              <td id="i7"></td>
-              <td id="i8"></td>
-            </tr>
-            <tr>
-              <td id="i9"></td>
-              <td id="i10"></td>
-              <td id="i11"></td>
-              <td id="i12"></td>
-            </tr>
-            <tr>
-              <td id="i13"></td>
-              <td id="i14"></td>
-              <td id="i15"></td>
-              <td id="i16"></td>
-            </tr>
-            <tr>
-              <td colspan="4" class="moneyRow">
-                <div id="money"></div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
 
         <h2 class="floatLeft">Inventory</h2>
         <div style="width: 200px; text-align: right"><a href="" id="sellAll" class="darkLink">Sell all</a></div>
@@ -123,6 +83,17 @@
           <thead>
             <th>Item</th>
             <th>Amount</th>
+            <th>
+              <div id="keepHelpTooltip">
+                <ol>
+                  <li>Click the value to specify the amount to be kept.</li>
+                  <li>Any extra will be sold automatically.</li>
+                  <li>Delete the value to keep all items.</li>
+                </ol>
+                <a href="" id="keepHelpClose" class="floatRight">Close</a>
+              </div>
+              Keep<sup><a href="" id="keepHelp">?</a></sup>
+            </th>
           </thead>
           <tbody>
           </tbody>
